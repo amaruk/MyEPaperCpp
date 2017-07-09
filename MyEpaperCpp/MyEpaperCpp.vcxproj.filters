@@ -13,6 +13,54 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Application">
+      <UniqueIdentifier>{89e309b0-245d-44c8-9ad5-a7ad3d651d8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Application\Configuration">
+      <UniqueIdentifier>{cec9f7c2-66df-46d8-a1d4-150abbb23b6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Application\Incubator">
+      <UniqueIdentifier>{0e4b1e31-107c-4002-972c-a93ae5c08fe8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Infrastructure">
+      <UniqueIdentifier>{0c0f5caf-d923-4420-8c67-54904d0447f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Infrastructure\OSAbstraction">
+      <UniqueIdentifier>{d289e361-863c-473a-982d-46fd13fcb7ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Middleware">
+      <UniqueIdentifier>{2bd8714c-75d4-4534-84c6-60357ac0f2a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Middleware\Epaper">
+      <UniqueIdentifier>{b50f5466-1ba8-4341-a00c-b4cf931501a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Application">
+      <UniqueIdentifier>{ebdcbd77-3e49-4b2e-8ea9-b4683d76e489}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Application\Configuration">
+      <UniqueIdentifier>{7e9635ef-9b66-44ff-adc8-f2be86f3eb90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Application\Incubator">
+      <UniqueIdentifier>{457eb08b-726c-437b-b0f0-bb498b5540f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Infrastructure">
+      <UniqueIdentifier>{af1066d9-ae5b-4718-b567-5c914eec0497}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Infrastructure\OSAbstraction">
+      <UniqueIdentifier>{1d80f457-ffe2-4c8f-b2bc-5cc49a58f5ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Middleware">
+      <UniqueIdentifier>{ee730c48-07af-4638-82ea-6e5752a35312}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Middleware\Epaper">
+      <UniqueIdentifier>{49a88d3f-1b89-4970-9f6a-3f1628bccb66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Infrastructure\OSAbstraction\Windows">
+      <UniqueIdentifier>{87d52494-e140-4e8d-9099-75a3e3f3e267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Infrastructure\OSAbstraction\Windows">
+      <UniqueIdentifier>{522f0a0d-853d-4980-b239-8c18197674ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -24,6 +72,9 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Header\Infrastructure\OSAbstraction\Windows\SerialPort.h">
+      <Filter>Header Files\Infrastructure\OSAbstraction\Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -31,6 +82,12 @@
     </ClCompile>
     <ClCompile Include="MyEpaperCpp.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Infrastructure\OSAbstraction\Windows\SerialPortTest.cpp">
+      <Filter>Source Files\Infrastructure\OSAbstraction\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Infrastructure\OSAbstraction\Windows\SerialPort.cpp">
+      <Filter>Source Files\Infrastructure\OSAbstraction\Windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
