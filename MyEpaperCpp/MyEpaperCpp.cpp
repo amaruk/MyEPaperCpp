@@ -15,6 +15,7 @@
 #include "stdafx.h"
 #include <iostream>
 #include <string>
+#include "Application\Incubator\IncubatorApp.h"
 
 using std::cout;
 using std::endl;
@@ -22,6 +23,11 @@ using std::endl;
 int main()
 {
     cout << "Hello, C++ Epaper!" << endl;
+
+    IncubatorApp app = IncubatorApp();
+    app.init();
+    app.run();
+
     return 0;
 }
 

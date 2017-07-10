@@ -146,14 +146,20 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header\Application\Incubator\IncubatorApp.h" />
     <ClInclude Include="Header\Infrastructure\OSAbstraction\Windows\SerialPort.h" />
+    <ClInclude Include="Header\Middleware\Epaper\CmdFrame.h" />
+    <ClInclude Include="Header\Middleware\Epaper\EpaperController.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MyEpaperCpp.cpp" />
+    <ClCompile Include="Source\Application\Incubator\IncubatorApp.cpp" />
     <ClCompile Include="Source\Infrastructure\OSAbstraction\Windows\SerialPort.cpp" />
     <ClCompile Include="Source\Infrastructure\OSAbstraction\Windows\SerialPortTest.cpp" />
+    <ClCompile Include="Source\Middleware\Epaper\CmdFrame.cpp" />
+    <ClCompile Include="Source\Middleware\Epaper\EpaperController.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

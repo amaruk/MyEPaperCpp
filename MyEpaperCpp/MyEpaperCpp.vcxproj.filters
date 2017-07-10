@@ -75,6 +75,15 @@
     <ClInclude Include="Header\Infrastructure\OSAbstraction\Windows\SerialPort.h">
       <Filter>Header Files\Infrastructure\OSAbstraction\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="Header\Application\Incubator\IncubatorApp.h">
+      <Filter>Header Files\Application\Incubator</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Middleware\Epaper\EpaperController.h">
+      <Filter>Header Files\Middleware\Epaper</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Middleware\Epaper\CmdFrame.h">
+      <Filter>Header Files\Middleware\Epaper</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -88,6 +97,15 @@
     </ClCompile>
     <ClCompile Include="Source\Infrastructure\OSAbstraction\Windows\SerialPort.cpp">
       <Filter>Source Files\Infrastructure\OSAbstraction\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application\Incubator\IncubatorApp.cpp">
+      <Filter>Source Files\Application\Incubator</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Middleware\Epaper\EpaperController.cpp">
+      <Filter>Source Files\Middleware\Epaper</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Middleware\Epaper\CmdFrame.cpp">
+      <Filter>Source Files\Middleware\Epaper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
