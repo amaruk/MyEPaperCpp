@@ -1,6 +1,9 @@
 #include "Middleware/Epaper/EpaperController.h"
+#include <iostream>
 
 using std::vector;
+using std::cout;
+using std::endl;
 
 // TODO The following pins are not implemented yet
 static int s_pin_wakeup = 0;    // Wake up pin
@@ -14,7 +17,7 @@ void usleep(int us) {};
 EpaperController::EpaperController(const CSerialPort &serialInit) : serialPort(serialInit)
 {
     // Read and discard existing data.
-    serialPort.GetBytesInCOM();
+    serialPort.GetBytesInCOM(); // TODO
     s_pin_wakeup = PIN_LOW;
     s_pin_reset = PIN_LOW;
 }

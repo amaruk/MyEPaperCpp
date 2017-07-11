@@ -89,8 +89,8 @@ set screen rotation
 class CmdFrame
 {
 public:
-    CmdFrame();
-    ~CmdFrame();
+    CmdFrame() = default;
+    ~CmdFrame() = default;
 
     // Frame length without data.
     // Contains Header/Len*2/Cmd/End*4/Parity only.
@@ -99,7 +99,9 @@ public:
     // TODO: Increase the array size?
     static const uint8_t frmLenMax = 0xFF;
 
+    // Update command type and data
     void updateFrm(const frmCmdType &cmd, const std::vector<uint8_t> &data);
+    // 
     std::array<uint8_t, frmLenMax> &getSerializedAry(void) { return serializedBytes; }
     uint8_t *getSerializedAryTBD(void) { return serializedBytesTBD; }
     uint16_t getFrmLen(void) { return frmLen; }

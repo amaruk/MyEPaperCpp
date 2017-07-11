@@ -6,6 +6,6 @@ public:
     ~IncubatorApp();
 
     void run(void);
-    void init(void);
+    bool init(void);
 };
 

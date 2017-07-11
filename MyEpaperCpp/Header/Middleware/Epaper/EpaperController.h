@@ -45,5 +45,6 @@ public:
 private:
     CSerialPort serialPort;
     CmdFrame cmdFrame;
+
 };
 
