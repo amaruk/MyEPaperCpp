@@ -20,6 +20,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <deque>
 
 /** 串口通信类
 *
@@ -73,14 +74,22 @@ public:
     *  @note:   length不要大于pData所指向缓冲区的大小
     */
     bool WriteData(unsigned char* pData, unsigned int length);
-    bool WriteData();
+
+    /** 向串口写数据
+    *
+    *  将缓冲区中的数据写入到串口
+    *  @param:  deque<uint8_t> dqData 保存发送数据的deque
+    *  @return: bool  操作是否成功
+    *  @note:   deque的size大于outBufSize时返回false
+    */
+    bool WriteData(std::deque<uint8_t> sendData);
 
     /** 获取串口缓冲区中的字节数
     *
     *  @return: UINT  操作是否成功
     *  @note:   当串口缓冲区中无数据时,返回0
     */
-    UINT GetBytesInCOM();
+    UINT rcvBufSize();
 
     /** 读取串口接收缓冲区中一个字节的数据
     *
@@ -88,7 +97,21 @@ public:
     *  @return: bool  读取是否成功
     */
     bool ReadChar(char &cRecved);
-    bool ReadChar(char &cRecved, int msDelay);
+
+    /** 读取串口接收缓冲区中所有数据
+    *
+    *  @param:  deque<uint8_t> &rcvData 存放读取数据的deque
+    *  @return: bool  读取是否成功
+    */
+    bool ReadChar(std::deque<uint8_t> &rcvData);
+
+    /** 发送数据请求，延迟，读取返回数据
+    *
+    *  @param:  deque<uint8_t> &sendData 存放发送数据的deque
+    *  @param:  deque<uint8_t> &rcvData 存放读取数据的deque
+    *  @return: bool  读取是否成功
+    */
+    bool transaction(std::deque<uint8_t> sendData, std::deque<uint8_t> &rcvData);
 
     /** 开启监听线程
     *
@@ -132,6 +155,11 @@ private:
 
     /** 同步互斥,临界区保护 */
     CRITICAL_SECTION   m_csCommunicationSync; //!< 互斥操作串口
+
+    /** 发送区缓存大小 **/
+    static const int outBufSize = 0xFF;
+    /** 发送区缓存数组 **/
+    unsigned char aryData[outBufSize];
 
     /** 线程退出标志变量 */
     //static bool s_bExit;

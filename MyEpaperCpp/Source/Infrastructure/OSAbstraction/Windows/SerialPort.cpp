@@ -22,6 +22,8 @@
 #include <process.h>
 #include <iostream>
 
+using std::deque;
+
 /** 线程退出标志 */
 //bool CSerialPort::s_bExit = false;
 /** 当串口无数据时,sleep至下次查询间隔的时间,单位:秒 */
@@ -183,7 +185,7 @@ void CSerialPort::ClearPort(void)
     PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
 }
 
-UINT CSerialPort::GetBytesInCOM()
+UINT CSerialPort::rcvBufSize()
 {
     DWORD dwError = 0;  /** 错误码 */
     COMSTAT  comstat;   /** COMSTAT结构体,记录通信设备的状态信息 */
@@ -232,6 +234,32 @@ bool CSerialPort::ReadChar(char &cRecved)
 
 }
 
+bool CSerialPort::ReadChar(std::deque<uint8_t> &rcvData)
+{
+    UINT rcvSize = rcvBufSize();
+
+    rcvData.clear(); // 清空返回数据区域
+    for (int idx = 0; idx != rcvSize; idx++)
+    {
+        char curChar;
+        ReadChar(curChar);
+        rcvData.push_back(static_cast<uint8_t>(curChar));
+    }
+
+    return true;
+}
+
+bool CSerialPort::transaction(std::deque<uint8_t> sendData, std::deque<uint8_t>& rcvData)
+{
+    if (!WriteData(sendData))
+    { return false; }
+    Sleep(100);
+    if (!ReadChar(rcvData))
+    { return false; }
+
+    return true;
+}
+
 bool CSerialPort::WriteData(unsigned char* pData, unsigned int length)
 {
     BOOL   bResult = TRUE;
@@ -258,6 +286,23 @@ bool CSerialPort::WriteData(unsigned char* pData, unsigned int length)
 
     /** 离开临界区 */
     LeaveCriticalSection(&m_csCommunicationSync);
+
+    return true;
+}
+
+bool CSerialPort::WriteData(deque<uint8_t> sendData)
+{
+    unsigned int dataSize = sendData.size();
+
+    // 检查缓冲区大小是否足够
+    if (dataSize > outBufSize)
+    { return false; }
+    
+    // 复制元素到数组
+    for (int idx = 0; idx != dataSize; idx++)
+    { aryData[idx] = sendData[idx]; }
+
+    WriteData(aryData, dataSize);
 
     return true;
 }
@@ -315,7 +360,7 @@ UINT WINAPI CSerialPort::ListenThread(void* pParam)
     // 线程循环,轮询方式读取串口数据  
     while (!pSerialPort->s_bExit)
     {
-        UINT BytesInQue = pSerialPort->GetBytesInCOM();
+        UINT BytesInQue = pSerialPort->rcvBufSize();
         /** 如果串口输入缓冲区中无数据,则休息一会再查询 */
         if (BytesInQue == 0)
         {
