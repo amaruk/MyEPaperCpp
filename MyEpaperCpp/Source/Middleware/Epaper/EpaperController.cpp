@@ -16,8 +16,7 @@ void usleep(int us) {};
 
 EpaperController::EpaperController(const CSerialPort &serialInit) : serialPort(serialInit)
 {
-    // Read and discard existing data.
-    serialPort.GetBytesInCOM(); // TODO
+    serialPort.ClearPort(); // Discard existing data.
     s_pin_wakeup = PIN_LOW;
     s_pin_reset = PIN_LOW;
 }

@@ -14,11 +14,10 @@
 /// @date    2010/03/19  
 ///  
 ///  修订说明：  
-/// 2017-07 amaruk：使用C++11特性重构
+/// 2017-07-11 amaruk：使用C++11特性重构
 //////////////////////////////////////////////////////////////////////////  
 
-#ifndef SERIALPORT_H_  
-#define SERIALPORT_H_  
+#pragma once
 
 #include <Windows.h>
 
@@ -27,7 +26,7 @@
 *  本类实现了对串口的基本操作
 *  例如监听发到指定串口的数据、发送指定数据到串口
 */
-class CSerialPort
+class CSerialPort // TODO Inherit from an OSAbstraction base class
 {
 public:
     CSerialPort(void);
@@ -47,9 +46,9 @@ public:
     *  @note:   在使用其他本类提供的函数前,请先调用本函数进行串口的初始化
     *　　　　　   \n本函数提供了一些常用的串口参数设置,若需要自行设置详细的DCB参数,可使用重载函数
     *           \n本串口类析构时会自动关闭串口,无需额外执行关闭串口
-    *  @see:
     */
-    bool InitPort(UINT  portNo = 1, UINT  baud = CBR_9600, char  parity = 'N', UINT  databits = 8, UINT  stopsbits = 1, DWORD dwCommEvents = EV_RXCHAR);
+    bool InitPort(UINT portNo = 1, UINT baud = CBR_9600, char parity = 'N',
+        UINT databits = 8, UINT stopsbits = 1, DWORD dwCommEvents = EV_RXCHAR);
 
     /** 串口初始化函数
     *
@@ -58,27 +57,12 @@ public:
     *  @param:  const LPDCB & plDCB
     *  @return: bool  初始化是否成功
     *  @note:   本函数提供用户自定义地串口初始化参数
-    *  @see:
     */
     bool InitPort(UINT  portNo, const LPDCB& plDCB);
 
-    /** 开启监听线程
-    *
-    *  本监听线程完成对串口数据的监听,并将接收到的数据打印到屏幕输出
-    *  @return: bool  操作是否成功
-    *  @note:   当线程已经处于开启状态时,返回flase
-    *  @see:
+    /** 清空串口缓冲区
     */
-    bool OpenListenThread();
-
-    /** 关闭监听线程
-    *
-    *
-    *  @return: bool  操作是否成功
-    *  @note:   调用本函数后,监听串口的线程将会被关闭
-    *  @see:
-    */
-    bool CloseListenTread();
+    void ClearPort(void);
 
     /** 向串口写数据
     *
@@ -87,47 +71,49 @@ public:
     *  @param:  unsigned int length 需要写入的数据长度
     *  @return: bool  操作是否成功
     *  @note:   length不要大于pData所指向缓冲区的大小
-    *  @see:
     */
     bool WriteData(unsigned char* pData, unsigned int length);
+    bool WriteData();
 
     /** 获取串口缓冲区中的字节数
     *
-    *
     *  @return: UINT  操作是否成功
     *  @note:   当串口缓冲区中无数据时,返回0
-    *  @see:
     */
     UINT GetBytesInCOM();
 
     /** 读取串口接收缓冲区中一个字节的数据
     *
-    *
     *  @param:  char & cRecved 存放读取数据的字符变量
     *  @return: bool  读取是否成功
-    *  @note:
-    *  @see:
     */
     bool ReadChar(char &cRecved);
+    bool ReadChar(char &cRecved, int msDelay);
 
+    /** 开启监听线程
+    *
+    *  本监听线程完成对串口数据的监听,并将接收到的数据打印到屏幕输出
+    *  @return: bool  操作是否成功
+    *  @note:   当线程已经处于开启状态时,返回flase
+    */
+    //bool OpenListenThread();
+
+    /** 关闭监听线程
+    *
+    *  @return: bool  操作是否成功
+    *  @note:   调用本函数后,监听串口的线程将会被关闭
+    */
+    //bool CloseListenTread();
 private:
 
     /** 打开串口
     *
-    *
     *  @param:  UINT portNo 串口设备号
     *  @return: bool  打开是否成功
-    *  @note:
-    *  @see:
     */
     bool openPort(UINT  portNo);
 
     /** 关闭串口
-    *
-    *
-    *  @return: void  操作是否成功
-    *  @note:
-    *  @see:
     */
     void ClosePort();
 
@@ -136,25 +122,21 @@ private:
     *  监听来自串口的数据和信息
     *  @param:  void * pParam 线程参数
     *  @return: UINT WINAPI 线程返回值
-    *  @note:
-    *  @see:
     */
-    static UINT WINAPI ListenThread(void* pParam);
+    //static UINT WINAPI ListenThread(void* pParam);
 
 private:
 
     /** 串口句柄 */
     HANDLE  m_hComm;
 
+    /** 同步互斥,临界区保护 */
+    CRITICAL_SECTION   m_csCommunicationSync; //!< 互斥操作串口
+
     /** 线程退出标志变量 */
-    static bool s_bExit;
+    //static bool s_bExit;
 
     /** 线程句柄 */
-    volatile HANDLE    m_hListenThread;
-
-    /** 同步互斥,临界区保护 */
-    CRITICAL_SECTION   m_csCommunicationSync;       //!< 互斥操作串口  
+    //volatile HANDLE    m_hListenThread;
 
 };
-
-#endif //SERIALPORT_H_ 

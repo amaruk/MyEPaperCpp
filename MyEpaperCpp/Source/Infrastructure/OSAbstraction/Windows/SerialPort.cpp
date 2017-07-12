@@ -23,23 +23,19 @@
 #include <iostream>
 
 /** 线程退出标志 */
-bool CSerialPort::s_bExit = false;
+//bool CSerialPort::s_bExit = false;
 /** 当串口无数据时,sleep至下次查询间隔的时间,单位:秒 */
-const UINT SLEEP_TIME_INTERVAL = 5;
+//const UINT SLEEP_TIME_INTERVAL = 5;
 
 CSerialPort::CSerialPort(void)
-    : m_hListenThread(INVALID_HANDLE_VALUE)
+    : m_hComm(INVALID_HANDLE_VALUE)//, m_hListenThread(INVALID_HANDLE_VALUE)
 {
-    m_hComm = INVALID_HANDLE_VALUE;
-    m_hListenThread = INVALID_HANDLE_VALUE;
-
     InitializeCriticalSection(&m_csCommunicationSync);
-
 }
 
 CSerialPort::~CSerialPort(void)
 {
-    CloseListenTread();
+    //CloseListenTread();
     ClosePort();
     DeleteCriticalSection(&m_csCommunicationSync);
 }
@@ -54,9 +50,7 @@ bool CSerialPort::InitPort(UINT portNo /*= 1*/, UINT baud /*= CBR_9600*/, char p
 
     /** 打开指定串口,该函数内部已经有临界区保护,上面请不要加保护 */
     if (!openPort(portNo))
-    {
-        return false;
-    }
+    { return false; }
 
     /** 进入临界段 */
     EnterCriticalSection(&m_csCommunicationSync);
@@ -67,10 +61,10 @@ bool CSerialPort::InitPort(UINT portNo /*= 1*/, UINT baud /*= CBR_9600*/, char p
     /** 在此可以设置输入输出的缓冲区大小,如果不设置,则系统会设置默认值.
     *  自己设置缓冲区大小时,要注意设置稍大一些,避免缓冲区溢出
     */
-    /*if (bIsSuccess )
-    {
-    bIsSuccess = SetupComm(m_hComm,10,10);
-    }*/
+    /*
+    if (bIsSuccess)
+    { bIsSuccess = SetupComm(m_hComm,10,10); }
+    */
 
     /** 设置串口的超时时间,均设为0,表示不使用超时限制 */
     COMMTIMEOUTS  CommTimeouts;
@@ -91,9 +85,7 @@ bool CSerialPort::InitPort(UINT portNo /*= 1*/, UINT baud /*= CBR_9600*/, char p
         DWORD dwNum = MultiByteToWideChar(CP_ACP, 0, szDCBparam, -1, NULL, 0);
         wchar_t *pwText = new wchar_t[dwNum];
         if (!MultiByteToWideChar(CP_ACP, 0, szDCBparam, -1, pwText, dwNum))
-        {
-            bIsSuccess = TRUE;
-        }
+        { bIsSuccess = TRUE; }
 
         /** 获取当前串口配置参数,并且构造串口DCB参数 */
         bIsSuccess = GetCommState(m_hComm, &dcb) && BuildCommDCB(pwText, &dcb);
@@ -111,7 +103,7 @@ bool CSerialPort::InitPort(UINT portNo /*= 1*/, UINT baud /*= CBR_9600*/, char p
     }
 
     /**  清空串口缓冲区 */
-    PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+    ClearPort();
 
     /** 离开临界段 */
     LeaveCriticalSection(&m_csCommunicationSync);
@@ -137,7 +129,7 @@ bool CSerialPort::InitPort(UINT portNo, const LPDCB& plDCB)
     }
 
     /**  清空串口缓冲区 */
-    PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+    ClearPort();
 
     /** 离开临界段 */
     LeaveCriticalSection(&m_csCommunicationSync);
@@ -186,6 +178,91 @@ bool CSerialPort::openPort(UINT portNo)
     return true;
 }
 
+void CSerialPort::ClearPort(void)
+{
+    PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_TXABORT);
+}
+
+UINT CSerialPort::GetBytesInCOM()
+{
+    DWORD dwError = 0;  /** 错误码 */
+    COMSTAT  comstat;   /** COMSTAT结构体,记录通信设备的状态信息 */
+    memset(&comstat, 0, sizeof(COMSTAT));
+
+    UINT BytesInQue = 0;
+    /** 在调用ReadFile和WriteFile之前,通过本函数清除以前遗留的错误标志 */
+    if (ClearCommError(m_hComm, &dwError, &comstat))
+    {
+        BytesInQue = comstat.cbInQue; /** 获取在输入缓冲区中的字节数 */
+    }
+
+    return BytesInQue;
+}
+
+bool CSerialPort::ReadChar(char &cRecved)
+{
+    BOOL  bResult = TRUE;
+    DWORD BytesRead = 0;
+    if (m_hComm == INVALID_HANDLE_VALUE)
+    {
+        return false;
+    }
+
+    /** 临界区保护 */
+    EnterCriticalSection(&m_csCommunicationSync);
+
+    /** 从缓冲区读取一个字节的数据 */
+    bResult = ReadFile(m_hComm, &cRecved, 1, &BytesRead, NULL);
+    if ((!bResult))
+    {
+        /** 获取错误码,可以根据该错误码查出错误原因 */
+        DWORD dwError = GetLastError();
+
+        /** 清空串口缓冲区 */
+        ClearPort();
+        LeaveCriticalSection(&m_csCommunicationSync);
+
+        return false;
+    }
+
+    /** 离开临界区 */
+    LeaveCriticalSection(&m_csCommunicationSync);
+
+    return (BytesRead == 1);
+
+}
+
+bool CSerialPort::WriteData(unsigned char* pData, unsigned int length)
+{
+    BOOL   bResult = TRUE;
+    DWORD  BytesToSend = 0;
+    if (m_hComm == INVALID_HANDLE_VALUE)
+    {
+        return false;
+    }
+
+    /** 临界区保护 */
+    EnterCriticalSection(&m_csCommunicationSync);
+
+    /** 向缓冲区写入指定量的数据 */
+    bResult = WriteFile(m_hComm, pData, length, &BytesToSend, NULL);
+    if (!bResult)
+    {
+        DWORD dwError = GetLastError();
+        /** 清空串口缓冲区 */
+        ClearPort();
+        LeaveCriticalSection(&m_csCommunicationSync);
+
+        return false;
+    }
+
+    /** 离开临界区 */
+    LeaveCriticalSection(&m_csCommunicationSync);
+
+    return true;
+}
+
+#if 0
 bool CSerialPort::OpenListenThread()
 {
     /** 检测线程是否已经开启了 */
@@ -230,22 +307,6 @@ bool CSerialPort::CloseListenTread()
     return true;
 }
 
-UINT CSerialPort::GetBytesInCOM()
-{
-    DWORD dwError = 0;  /** 错误码 */
-    COMSTAT  comstat;   /** COMSTAT结构体,记录通信设备的状态信息 */
-    memset(&comstat, 0, sizeof(COMSTAT));
-
-    UINT BytesInQue = 0;
-    /** 在调用ReadFile和WriteFile之前,通过本函数清除以前遗留的错误标志 */
-    if (ClearCommError(m_hComm, &dwError, &comstat))
-    {
-        BytesInQue = comstat.cbInQue; /** 获取在输入缓冲区中的字节数 */
-    }
-
-    return BytesInQue;
-}
-
 UINT WINAPI CSerialPort::ListenThread(void* pParam)
 {
     /** 得到本类的指针 */
@@ -277,66 +338,4 @@ UINT WINAPI CSerialPort::ListenThread(void* pParam)
 
     return 0;
 }
-
-bool CSerialPort::ReadChar(char &cRecved)
-{
-    BOOL  bResult = TRUE;
-    DWORD BytesRead = 0;
-    if (m_hComm == INVALID_HANDLE_VALUE)
-    {
-        return false;
-    }
-
-    /** 临界区保护 */
-    EnterCriticalSection(&m_csCommunicationSync);
-
-    /** 从缓冲区读取一个字节的数据 */
-    bResult = ReadFile(m_hComm, &cRecved, 1, &BytesRead, NULL);
-    if ((!bResult))
-    {
-        /** 获取错误码,可以根据该错误码查出错误原因 */
-        DWORD dwError = GetLastError();
-
-        /** 清空串口缓冲区 */
-        PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_RXABORT);
-        LeaveCriticalSection(&m_csCommunicationSync);
-
-        return false;
-    }
-
-    /** 离开临界区 */
-    LeaveCriticalSection(&m_csCommunicationSync);
-
-    return (BytesRead == 1);
-
-}
-
-bool CSerialPort::WriteData(unsigned char* pData, unsigned int length)
-{
-    BOOL   bResult = TRUE;
-    DWORD  BytesToSend = 0;
-    if (m_hComm == INVALID_HANDLE_VALUE)
-    {
-        return false;
-    }
-
-    /** 临界区保护 */
-    EnterCriticalSection(&m_csCommunicationSync);
-
-    /** 向缓冲区写入指定量的数据 */
-    bResult = WriteFile(m_hComm, pData, length, &BytesToSend, NULL);
-    if (!bResult)
-    {
-        DWORD dwError = GetLastError();
-        /** 清空串口缓冲区 */
-        PurgeComm(m_hComm, PURGE_RXCLEAR | PURGE_RXABORT);
-        LeaveCriticalSection(&m_csCommunicationSync);
-
-        return false;
-    }
-
-    /** 离开临界区 */
-    LeaveCriticalSection(&m_csCommunicationSync);
-
-    return true;
-}
+#endif

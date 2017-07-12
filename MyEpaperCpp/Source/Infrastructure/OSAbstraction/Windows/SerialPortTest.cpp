@@ -8,20 +8,18 @@
 using std::cout;
 using std::endl;
 
-int notmain(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 
     CSerialPort mySerialPort;
 
     if (!mySerialPort.InitPort(7))
     {
-        std::cout << "initPort fail !" << std::endl;
+        std::cout << "/!\\ Fatal Error: initPort fail!" << std::endl;
         return -1;
     }
     else
-    {
-        std::cout << "initPort success !" << std::endl;
-    }
+    { ; }
 
 #if 0
     if (!mySerialPort.OpenListenThread())
