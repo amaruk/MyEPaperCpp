@@ -22,6 +22,20 @@
 #include <process.h>
 #include <iostream>
 
+#define DEBUG
+
+#ifdef DEBUG
+#include <iomanip>
+using std::cout;
+using std::endl;
+using std::setfill;
+using std::setw;
+using std::hex;
+using std::dec;
+using std::uppercase;
+using std::nouppercase;
+#endif
+
 using std::deque;
 
 /** 线程退出标志 */
@@ -302,7 +316,14 @@ bool CSerialPort::WriteData(deque<uint8_t> sendData)
     for (int idx = 0; idx != dataSize; idx++)
     { aryData[idx] = sendData[idx]; }
 
+#ifdef DEBUG
+    cout << "UART: " << hex << uppercase;
+    for (uint8_t byteData : sendData)
+    { cout << setfill('0') << setw(2) << static_cast<int>(byteData) << " "; }
+    cout << dec << nouppercase << endl;
+#else
     WriteData(aryData, dataSize);
+#endif
 
     return true;
 }
