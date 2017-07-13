@@ -9,7 +9,7 @@ using std::cout;
 using std::endl;
 using std::deque;
 
-int main(int argc, char* argv[])
+int test_main(int argc, char* argv[])
 {
 
     CSerialPort mySerialPort;

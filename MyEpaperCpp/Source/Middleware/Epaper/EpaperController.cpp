@@ -2,6 +2,7 @@
 #include <iostream>
 
 using std::vector;
+using std::deque;
 using std::cout;
 using std::endl;
 
@@ -47,12 +48,12 @@ void EpaperController::wakeup(void)
 
 void EpaperController::handshake(void)
 {
-    vector<uint8_t> dummy = {};
-    cmdFrame.updateFrm(frmCmdType::HANDSHAKE, dummy);
+    deque<uint8_t> rcvData = {};
+    cmdFrame.createFrm(frmCmdType::HANDSHAKE);
 
-    serialPort.WriteData(cmdFrame.getSerializedAryTBD(), cmdFrame.getFrmLen());
-    // serialPort.ReadData();   // Returns "OK" if epaper is ready
-                                // TODO: Check handshake result
+    serialPort.transaction(cmdFrame.serializeFrm(), rcvData);
+    // Returns "OK" if epaper is ready
+    // TODO: Check handshake result
 }
 
 #if 0

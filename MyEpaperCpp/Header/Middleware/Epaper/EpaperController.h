@@ -6,6 +6,7 @@
 class EpaperController
 {
 public:
+    EpaperController(void) = default;
     EpaperController(const CSerialPort &serialInit);
     ~EpaperController();
 

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <vector>
 #include <array>
+#include <deque>
 
 enum class frmCmdType : uint8_t
 {
@@ -99,28 +100,24 @@ public:
     // TODO: Increase the array size?
     static const uint8_t frmLenMax = 0xFF;
 
-    // Update command type and data
-    void updateFrm(const frmCmdType &cmd, const std::vector<uint8_t> &data);
-    // 
-    std::array<uint8_t, frmLenMax> &getSerializedAry(void) { return serializedBytes; }
-    uint8_t *getSerializedAryTBD(void) { return serializedBytesTBD; }
-    uint16_t getFrmLen(void) { return frmLen; }
-
+    // Create a new command frame with specified type and data
+    void createFrm(const frmCmdType &cmd, const std::deque<uint8_t> &data);
+    // Create a new command frame with specified type and empth data
+    void createFrm(const frmCmdType &cmd);
+    // Serialize frame data into a deque
+    std::deque<uint8_t> &serializeFrm(void);
 
 private:
-    const uint8_t frmHeader = 0xA5;
-    uint16_t frmLen = frmLenNoData;
-    frmCmdType frmCmd = frmCmdType::INVALID;
-    std::vector<uint8_t> frmData = { };
-    const std::vector<uint8_t> frmEn = { 0xCC, 0x33, 0xC3, 0x3C };
-    uint8_t frmParity = 0x00; // XOR from header to end
+    const uint8_t frmHeader = 0xA5; // Header
+    uint16_t frmLen = frmLenNoData; // Length
+    frmCmdType frmCmd = frmCmdType::INVALID; // Command type
+    std::deque<uint8_t> frmData = { }; // Data
+    const std::deque<uint8_t> frmEnd = { 0xCC, 0x33, 0xC3, 0x3C }; // End
+    uint8_t frmParity = 0x00; // Parity: XOR from header to end
 
 
     // Serialized bytes to be sent to UART port.
-    std::array<uint8_t, frmLenMax> serializedBytes;
-    // An internal array version of the serialized bytes.
-    // TODO: Update UART part to remove using internal array.
-    uint8_t serializedBytesTBD[frmLenMax];
+    std::deque<uint8_t> serializedFrm;
 
 };
 

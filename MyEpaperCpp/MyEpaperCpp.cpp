@@ -20,7 +20,7 @@
 using std::cout;
 using std::endl;
 
-int notmain()
+int main()
 {
     cout << "Hello, C++ Epaper!" << endl;
 
