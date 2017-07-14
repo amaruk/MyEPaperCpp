@@ -10,12 +10,12 @@ public:
     EpaperController(const CSerialPort &serialInit);
     ~EpaperController();
 
-    void reset(void); // Reset the epaper module
-    void wakeup(void); // Wakeup the epaper module
+    void reset(void);
+    void wakeup(void);
     void handshake(void);
+    void setBaud(uint32_t baud);
 #if 0
 
-    void LibEpdSetBaud(long baud);
     void lib_epd_read_baud(void);
     void LibEpdSetMemory(unsigned char mode);
     void LibEpdEnterStopMode(void);

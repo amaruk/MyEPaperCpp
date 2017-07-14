@@ -48,7 +48,7 @@ public:
     *　　　　　   \n本函数提供了一些常用的串口参数设置,若需要自行设置详细的DCB参数,可使用重载函数
     *           \n本串口类析构时会自动关闭串口,无需额外执行关闭串口
     */
-    bool InitPort(UINT portNo = 1, UINT baud = CBR_9600, char parity = 'N',
+    bool InitPort(UINT portNo = 1, UINT baud = CBR_115200, char parity = 'N',
         UINT databits = 8, UINT stopsbits = 1, DWORD dwCommEvents = EV_RXCHAR);
 
     /** 串口初始化函数

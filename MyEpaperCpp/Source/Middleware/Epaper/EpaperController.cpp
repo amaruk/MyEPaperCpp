@@ -56,6 +56,22 @@ void EpaperController::handshake(void)
     // TODO: Check handshake result
 }
 
+/* Set baudrate */
+void EpaperController::setBaud(uint32_t baud)
+{
+    // Prepare baudrate value
+    deque<uint8_t> dqBaud = {};
+    dqBaud.push_back(static_cast<uint8_t>(((baud >> 24) & 0xFF)));
+    dqBaud.push_back(static_cast<uint8_t>(((baud >> 16) & 0xFF)));
+    dqBaud.push_back(static_cast<uint8_t>(((baud >> 8) & 0xFF)));
+    dqBaud.push_back(static_cast<uint8_t>(((baud) & 0xFF)));
+
+    cmdFrame.createFrm(frmCmdType::SET_BAUD, dqBaud);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+
+}
+
 #if 0
 
 /* The following pins are not in use now */
@@ -105,31 +121,6 @@ static unsigned char _checksum(const void * ptr, int n)
 
 
 
-/* Set baudrate */
-void LibEpdSetBaud(long baud)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0D;
-
-    s_frame_buff[3] = CMD_SET_BAUD;
-
-    s_frame_buff[4] = (baud >> 24) & 0xFF;
-    s_frame_buff[5] = (baud >> 16) & 0xFF;
-    s_frame_buff[6] = (baud >> 8) & 0xFF;
-    s_frame_buff[7] = baud & 0xFF;
-
-    s_frame_buff[8] = END_0;
-    s_frame_buff[9] = END_1;
-    s_frame_buff[10] = END_2;
-    s_frame_buff[11] = END_3;
-    s_frame_buff[12] = _checksum(s_frame_buff, 12);
-
-    DrvUartPutchars(s_frame_buff, 13);
-
-    usleep(10000);
-}
 
 /* Read baudrate */
 void LibEpdReadBaud(void)
