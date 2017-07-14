@@ -1,6 +1,7 @@
 #include "Middleware/Epaper/EpaperController.h"
 #include <iostream>
 
+using std::string;
 using std::vector;
 using std::deque;
 using std::cout;
@@ -46,6 +47,14 @@ void EpaperController::wakeup(void)
     usleep(10);
 }
 
+void EpaperController::enterStopMode(void)
+{
+    deque<uint8_t> rcvData = {};
+    cmdFrame.createFrm(frmCmdType::ENTER_STOP_MODE);
+
+    serialPort.transaction(cmdFrame.serializeFrm(), rcvData);
+}
+
 void EpaperController::handshake(void)
 {
     deque<uint8_t> rcvData = {};
@@ -56,10 +65,9 @@ void EpaperController::handshake(void)
     // TODO: Check handshake result
 }
 
-/* Set baudrate */
+// Set baudrate
 void EpaperController::setBaud(uint32_t baud)
 {
-    // Prepare baudrate value
     deque<uint8_t> dqBaud = {};
     dqBaud.push_back(static_cast<uint8_t>(((baud >> 24) & 0xFF)));
     dqBaud.push_back(static_cast<uint8_t>(((baud >> 16) & 0xFF)));
@@ -69,517 +77,266 @@ void EpaperController::setBaud(uint32_t baud)
     cmdFrame.createFrm(frmCmdType::SET_BAUD, dqBaud);
 
     serialPort.WriteData(cmdFrame.serializeFrm());
-
 }
 
-#if 0
-
-/* The following pins are not in use now */
-static int s_pin_wakeup = 0;    /* Wake up pin */
-static int s_pin_reset = 0;     /* Reset pin */
-
-                                /* Command frames */
-static const unsigned char s_frame_handshake[8] =
-{ START, 0x00, 0x09, CMD_HANDSHAKE, END_0, END_1, END_2, END_3 };     //CMD_HANDSHAKE
-static const unsigned char s_frame_read_baud[8] =
-{ START, 0x00, 0x09, CMD_READ_BAUD, END_0, END_1, END_2, END_3 };     //CMD_READ_BAUD
-static const unsigned char s_frame_stopmode[8] =
-{ START, 0x00, 0x09, CMD_STOP_MODE, END_0, END_1, END_2, END_3 };       //CMD_STOPMODE
-static const unsigned char s_frame_update[8] =
-{ START, 0x00, 0x09, CMD_UPDATE, END_0, END_1, END_2, END_3 };           //CMD_UPDATE
-static const unsigned char s_frame_load_font[8] =
-{ START, 0x00, 0x09, CMD_LOAD_FONT, END_0, END_1, END_2, END_3 };     //CMD_LOAD_FONT
-static const unsigned char s_frame_load_pic[8] =
-{ START, 0x00, 0x09, CMD_LOAD_PIC, END_0, END_1, END_2, END_3 };       //CMD_LOAD_PIC
-static const unsigned char s_frame_byte[9] =                             //Cmd with byte data
-{ START, 0x00, 0x09, CMD_LOAD_PIC, CMD_DATA_BYTE, END_0, END_1, END_2, END_3 };
-static const unsigned char s_frame_short[10] =                           //Cmd with short data
-{ START, 0x00, 0x09, CMD_LOAD_PIC, CMD_DATA_BYTE, CMD_DATA_BYTE, END_0, END_1, END_2, END_3 };
-static const unsigned char s_frame_dword[12] =                           //Cmd with dword data
-{ START, 0x00, 0x09, CMD_LOAD_PIC, CMD_DATA_BYTE, CMD_DATA_BYTE, CMD_DATA_BYTE, CMD_DATA_BYTE, END_0, END_1, END_2, END_3 };
-
-/* Command data */
-static unsigned char s_frame_buff[FRAME_BUFF_SIZE];
-
-/* Generate checksum */
-static unsigned char _checksum(const void * ptr, int n)
+// Read baudrate
+void EpaperController::getBaud(void)
 {
-    int i;
-    unsigned char * p = (unsigned char *)ptr;
-    unsigned char result;
+    deque<uint8_t> rcvData = {};
+    cmdFrame.createFrm(frmCmdType::READ_BAUD);
 
-    for (i = 0, result = 0; i < n; i++)
-    {
-        result ^= p[i];
-    }
-
-    return result;
-}
-
-#define SYSFS_UART_DEV "/sys/devices/bone_capemgr.9/slots"
-
-
-
-
-
-/* Read baudrate */
-void LibEpdReadBaud(void)
-{
-    memcpy(s_frame_buff, s_frame_read_baud, 8);
-    s_frame_buff[8] = _checksum(s_frame_buff, 8);
-
-    DrvUartPutchars(s_frame_buff, 9);
+    serialPort.transaction(cmdFrame.serializeFrm(), rcvData);
     // TODO: Read baud in ASCII format
 }
 
-/* Choose memory to be used.
-* mode: MEM_TF(1) or MEM_NAND(0) */
-void LibEpdSetMemory(unsigned char mode)
+// Update the e-paper's screen: Flush buffer to screen.
+void EpaperController::scrUpdate(void)
 {
-    s_frame_buff[0] = START;
+    cmdFrame.createFrm(frmCmdType::SCR_UPDATE);
 
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0A;
-
-    s_frame_buff[3] = CMD_SET_MEM_MODE;
-
-    s_frame_buff[4] = mode;
-
-    s_frame_buff[5] = END_0;
-    s_frame_buff[6] = END_1;
-    s_frame_buff[7] = END_2;
-    s_frame_buff[8] = END_3;
-    s_frame_buff[9] = _checksum(s_frame_buff, 9);
-
-    DrvUartPutchars(s_frame_buff, 10);
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-/* Enter stop mode */
-void LibEpdEnterStopMode(void)
+// Choose memory to be used: mode: MEM_TF(1) or MEM_NAND(0)
+void EpaperController::setMemMode(frmCmdMemMode mode)
 {
-    memcpy(s_frame_buff, s_frame_stopmode, 8);
-    s_frame_buff[8] = _checksum(s_frame_buff, 8);
+    deque<uint8_t> dqMemMode = {};
 
-    DrvUartPutchars(s_frame_buff, 9);
+    dqMemMode.push_back(static_cast<uint8_t>(mode));
+    cmdFrame.createFrm(frmCmdType::SET_MEM_MODE, dqMemMode);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-/* Update the e-paper's screen:
-* Flush buffer to screen.
-*/
-void LibEpdUpdate(void)
+//  ormal screen (0) or upside down screen (1)
+void EpaperController::setScrRot(frmCmdRotation rot)
 {
-    memcpy(s_frame_buff, s_frame_update, 8);
-    s_frame_buff[8] = _checksum(s_frame_buff, 8);
+    deque<uint8_t> dqRotation = {};
 
-    DrvUartPutchars(s_frame_buff, 9);
+    dqRotation.push_back(static_cast<uint8_t>(rot));
+    cmdFrame.createFrm(frmCmdType::SET_SCR_ROTATION, dqRotation);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-/* Normal screen (0) or upside down screen (1) */
-void LibEpdScreenRotation(unsigned char mode)
+// Clear screen using the background colour
+void EpaperController::fillScrBg(void)
 {
-    s_frame_buff[0] = START;
+    cmdFrame.createFrm(frmCmdType::FILL_SCR_BG);
 
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0A;
-
-    s_frame_buff[3] = CMD_SET_SCR_ROTATION;
-
-    s_frame_buff[4] = mode;
-
-    s_frame_buff[5] = END_0;
-    s_frame_buff[6] = END_1;
-    s_frame_buff[7] = END_2;
-    s_frame_buff[8] = END_3;
-    s_frame_buff[9] = _checksum(s_frame_buff, 9);
-
-    DrvUartPutchars(s_frame_buff, 10);
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-/* Load font from TF to NAND */
-void LibEpdLoadFont(void)
-{
-    memcpy(s_frame_buff, s_frame_load_font, 8);
-    s_frame_buff[8] = _checksum(s_frame_buff, 8);
 
-    DrvUartPutchars(s_frame_buff, 9);
+// Draw single pixel
+void EpaperController::drawPixel(int16_t x0, int16_t y0)
+{
+    deque<uint8_t> dqPixel = {};
+    dqPixel.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dqPixel.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dqPixel.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dqPixel.push_back(static_cast<uint8_t>(y0 & 0xFF));
+
+    cmdFrame.createFrm(frmCmdType::DRAW_PIXEL, dqPixel);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-/* Load BMP from TF to NAND */
-void LibEpdLoadPic(void)
+// Draw line
+void EpaperController::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1)
 {
-    memcpy(s_frame_buff, s_frame_load_pic, 8);
-    s_frame_buff[8] = _checksum(s_frame_buff, 8);
+    deque<uint8_t> dqLine = {};
+    dqLine.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dqLine.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dqLine.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dqLine.push_back(static_cast<uint8_t>(y0 & 0xFF));
+    dqLine.push_back(static_cast<uint8_t>((x1 >> 8) & 0xFF));
+    dqLine.push_back(static_cast<uint8_t>(x1 & 0xFF));
+    dqLine.push_back(static_cast<uint8_t>((y1 >> 8) & 0xFF));
+    dqLine.push_back(static_cast<uint8_t>(y1 & 0xFF));
 
-    DrvUartPutchars(s_frame_buff, 9);
+    cmdFrame.createFrm(frmCmdType::DRAW_LINE, dqLine);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
 /* Set fore-ground and back-ground colours */
-void LibEpdSetColor(unsigned char color, unsigned char bkcolor)
+void EpaperController::setColor(frmCmdColor color, frmCmdColor bgcolor)
 {
-    s_frame_buff[0] = START;
+    deque<uint8_t> dqLine = {};
+    dqLine.push_back(static_cast<uint8_t>(color));
+    dqLine.push_back(static_cast<uint8_t>(bgcolor));
 
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0B;
+    cmdFrame.createFrm(frmCmdType::SET_COLOR, dqLine);
 
-    s_frame_buff[3] = CMD_SET_COLOR;
-
-    s_frame_buff[4] = color; // Foreground
-    s_frame_buff[5] = bkcolor; // Background
-
-    s_frame_buff[6] = END_0;
-    s_frame_buff[7] = END_1;
-    s_frame_buff[8] = END_2;
-    s_frame_buff[9] = END_3;
-    s_frame_buff[10] = _checksum(s_frame_buff, 10);
-
-    DrvUartPutchars(s_frame_buff, 11);
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-/* Set English font: 1:32dot 2:48dot 3:64dot */
-void LibEpdSetEnFont(unsigned char font)
+// Fill rectangle
+void EpaperController::fillRect(int16_t x0, int16_t y0, int16_t x1, int16_t y1)
 {
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0A;
-
-    s_frame_buff[3] = CMD_SET_EN_FONT;
-
-    s_frame_buff[4] = font;
-
-    s_frame_buff[5] = END_0;
-    s_frame_buff[6] = END_1;
-    s_frame_buff[7] = END_2;
-    s_frame_buff[8] = END_3;
-    s_frame_buff[9] = _checksum(s_frame_buff, 9);
-
-    DrvUartPutchars(s_frame_buff, 10);
-}
-
-/* Set Chinese font: 1:32dot 2:48dot 3:64dot */
-void LibEpdSetChFont(unsigned char font)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0A;
-
-    s_frame_buff[3] = CMD_SET_CH_FONT;
-
-    s_frame_buff[4] = font;
-
-    s_frame_buff[5] = END_0;
-    s_frame_buff[6] = END_1;
-    s_frame_buff[7] = END_2;
-    s_frame_buff[8] = END_3;
-    s_frame_buff[9] = _checksum(s_frame_buff, 9);
-
-    DrvUartPutchars(s_frame_buff, 10);
-}
-
-/* Draw single pixel */
-// TODO: should be int16
-void LibEpdDrawPixel(int x0, int y0)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0D;
-
-    s_frame_buff[3] = CMD_DRAW_PIXEL;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-
-    s_frame_buff[8] = END_0;
-    s_frame_buff[9] = END_1;
-    s_frame_buff[10] = END_2;
-    s_frame_buff[11] = END_3;
-    s_frame_buff[12] = _checksum(s_frame_buff, 12);
-
-    DrvUartPutchars(s_frame_buff, 13);
-}
-
-/* Draw line */
-// TODO: Should be int16
-void LibEpdDrawLine(int x0, int y0, int x1, int y1)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x11;
-
-    s_frame_buff[3] = CMD_DRAW_LINE;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-    s_frame_buff[8] = (x1 >> 8) & 0xFF;
-    s_frame_buff[9] = x1 & 0xFF;
-    s_frame_buff[10] = (y1 >> 8) & 0xFF;
-    s_frame_buff[11] = y1 & 0xFF;
-
-    s_frame_buff[12] = END_0;
-    s_frame_buff[13] = END_1;
-    s_frame_buff[14] = END_2;
-    s_frame_buff[15] = END_3;
-    s_frame_buff[16] = _checksum(s_frame_buff, 16);
-
-    DrvUartPutchars(s_frame_buff, 17);
-}
-
-/* Fill rectangle */
-// TODO: should be int16
-void LibEpdFillRect(int x0, int y0, int x1, int y1)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x11;
-
-    s_frame_buff[3] = CMD_FILL_RECT;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-    s_frame_buff[8] = (x1 >> 8) & 0xFF;
-    s_frame_buff[9] = x1 & 0xFF;
-    s_frame_buff[10] = (y1 >> 8) & 0xFF;
-    s_frame_buff[11] = y1 & 0xFF;
-
-    s_frame_buff[12] = END_0;
-    s_frame_buff[13] = END_1;
-    s_frame_buff[14] = END_2;
-    s_frame_buff[15] = END_3;
-    s_frame_buff[16] = _checksum(s_frame_buff, 16);
-
-    DrvUartPutchars(s_frame_buff, 17);
-}
-
-/* Draw circle */
-// TODO: should be int16
-void LibEpdDrawCircle(int x0, int y0, int r)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0F;
-
-    s_frame_buff[3] = CMD_DRAW_CIRCLE;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-    s_frame_buff[8] = (r >> 8) & 0xFF;
-    s_frame_buff[9] = r & 0xFF;
-
-    s_frame_buff[10] = END_0;
-    s_frame_buff[11] = END_1;
-    s_frame_buff[12] = END_2;
-    s_frame_buff[13] = END_3;
-    s_frame_buff[14] = _checksum(s_frame_buff, 14);
-
-    DrvUartPutchars(s_frame_buff, 15);
-}
-
-/* Fill circle */
-// TODO: should be int16
-void LibEpdFillCircle(int x0, int y0, int r)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x0F;
-
-    s_frame_buff[3] = CMD_FILL_CIRCLE;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-    s_frame_buff[8] = (r >> 8) & 0xFF;
-    s_frame_buff[9] = r & 0xFF;
-
-    s_frame_buff[10] = END_0;
-    s_frame_buff[11] = END_1;
-    s_frame_buff[12] = END_2;
-    s_frame_buff[13] = END_3;
-    s_frame_buff[14] = _checksum(s_frame_buff, 14);
-
-    DrvUartPutchars(s_frame_buff, 15);
-}
-
-/* Draw triangle */
-// TODO: should be int16
-void LibEpdDrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x15;
-
-    s_frame_buff[3] = CMD_DRAW_TRIANGLE;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-    s_frame_buff[8] = (x1 >> 8) & 0xFF;
-    s_frame_buff[9] = x1 & 0xFF;
-    s_frame_buff[10] = (y1 >> 8) & 0xFF;
-    s_frame_buff[11] = y1 & 0xFF;
-    s_frame_buff[12] = (x2 >> 8) & 0xFF;
-    s_frame_buff[13] = x2 & 0xFF;
-    s_frame_buff[14] = (y2 >> 8) & 0xFF;
-    s_frame_buff[15] = y2 & 0xFF;
-
-    s_frame_buff[16] = END_0;
-    s_frame_buff[17] = END_1;
-    s_frame_buff[18] = END_2;
-    s_frame_buff[19] = END_3;
-    s_frame_buff[20] = _checksum(s_frame_buff, 20);
-
-    DrvUartPutchars(s_frame_buff, 21);
-}
-
-/* Fill triangle */
-// TODO: should be int16
-void LibEpdFillTriangle(int x0, int y0, int x1, int y1, int x2, int y2)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x15;
-
-    s_frame_buff[3] = CMD_FILL_TRIANGLE;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-    s_frame_buff[8] = (x1 >> 8) & 0xFF;
-    s_frame_buff[9] = x1 & 0xFF;
-    s_frame_buff[10] = (y1 >> 8) & 0xFF;
-    s_frame_buff[11] = y1 & 0xFF;
-    s_frame_buff[12] = (x2 >> 8) & 0xFF;
-    s_frame_buff[13] = x2 & 0xFF;
-    s_frame_buff[14] = (y2 >> 8) & 0xFF;
-    s_frame_buff[15] = y2 & 0xFF;
-
-    s_frame_buff[16] = END_0;
-    s_frame_buff[17] = END_1;
-    s_frame_buff[18] = END_2;
-    s_frame_buff[19] = END_3;
-    s_frame_buff[20] = _checksum(s_frame_buff, 20);
-
-    DrvUartPutchars(s_frame_buff, 21);
-}
-
-/* Clear screen using the background colour */
-void LibEpdClear(void)
-{
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = 0x00;
-    s_frame_buff[2] = 0x09;
-
-    s_frame_buff[3] = CMD_CLEAR;
-
-    s_frame_buff[4] = END_0;
-    s_frame_buff[5] = END_1;
-    s_frame_buff[6] = END_2;
-    s_frame_buff[7] = END_3;
-    s_frame_buff[8] = _checksum(s_frame_buff, 8);
-
-    DrvUartPutchars(s_frame_buff, 9);
-}
-
-/* Display a single char */
-void LibEpdDispChar(unsigned char ch, int x0, int y0)
-{
-    unsigned char buff[2];
-
-    buff[0] = ch;
-    buff[1] = 0;
-
-    LibEpdDispString(buff, x0, y0);
-}
-
-/* Display text */
-// TODO: Fix the buff size bug
-// TODO: should be int16
-void LibEpdDispString(const void * p, int x0, int y0)
-{
-    int string_size;
-    unsigned char * ptr = (unsigned char *)p;
-
-    string_size = strlen((const char *)ptr);
-    string_size += 14;
-
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = (string_size >> 8) & 0xFF;
-    s_frame_buff[2] = string_size & 0xFF;
-
-    s_frame_buff[3] = CMD_DRAW_STRING;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-
-    strcpy((char *)(&s_frame_buff[8]), (const char *)ptr);
-
-    string_size -= 5;
-
-    s_frame_buff[string_size] = END_0;
-    s_frame_buff[string_size + 1] = END_1;
-    s_frame_buff[string_size + 2] = END_2;
-    s_frame_buff[string_size + 3] = END_3;
-    s_frame_buff[string_size + 4] = _checksum(s_frame_buff, string_size + 4);
-
-    DrvUartPutchars(s_frame_buff, string_size + 5);
-}
-
-/* Display BMP. Bitmap file name string maximum length is 11 */
-// TODO: should be int16
-void LibEpdDispBitmap(const void * p, int x0, int y0)
-{
-    int string_size;
-    unsigned char * ptr = (unsigned char *)p;
-
-    string_size = strlen((const char *)ptr);
-    string_size += 14;
-
-    s_frame_buff[0] = START;
-
-    s_frame_buff[1] = (string_size >> 8) & 0xFF;
-    s_frame_buff[2] = string_size & 0xFF;
-
-    s_frame_buff[3] = CMD_DRAW_BITMAP;
-
-    s_frame_buff[4] = (x0 >> 8) & 0xFF;
-    s_frame_buff[5] = x0 & 0xFF;
-    s_frame_buff[6] = (y0 >> 8) & 0xFF;
-    s_frame_buff[7] = y0 & 0xFF;
-
-    strcpy((char *)(&s_frame_buff[8]), (const char *)ptr);
-
-    string_size -= 5;
-
-    s_frame_buff[string_size] = END_0;
-    s_frame_buff[string_size + 1] = END_1;
-    s_frame_buff[string_size + 2] = END_2;
-    s_frame_buff[string_size + 3] = END_3;
-    s_frame_buff[string_size + 4] = _checksum(s_frame_buff, string_size + 4);
-
-    DrvUartPutchars(s_frame_buff, string_size + 5);
+    deque<uint8_t> dqRect = {};
+    dqRect.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dqRect.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dqRect.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dqRect.push_back(static_cast<uint8_t>(y0 & 0xFF));
+    dqRect.push_back(static_cast<uint8_t>((x1 >> 8) & 0xFF));
+    dqRect.push_back(static_cast<uint8_t>(x1 & 0xFF));
+    dqRect.push_back(static_cast<uint8_t>((y1 >> 8) & 0xFF));
+    dqRect.push_back(static_cast<uint8_t>(y1 & 0xFF));
+
+    cmdFrame.createFrm(frmCmdType::FILL_RECT, dqRect);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
 
-#endif
+// Draw circle
+void EpaperController::drawCircle(int16_t x0, int16_t y0, int16_t r)
+{
+    deque<uint8_t> dqCircle = {};
+    dqCircle.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>(y0 & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>((r >> 8) & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>(r & 0xFF));
+
+    cmdFrame.createFrm(frmCmdType::DRAW_CIRCLE, dqCircle);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Fill circle
+void EpaperController::fillCircle(int16_t x0, int16_t y0, int16_t r)
+{
+    deque<uint8_t> dqCircle = {};
+    dqCircle.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>(y0 & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>((r >> 8) & 0xFF));
+    dqCircle.push_back(static_cast<uint8_t>(r & 0xFF));
+
+    cmdFrame.createFrm(frmCmdType::FILL_CIRCLE, dqCircle);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Draw triangle
+void EpaperController::drawTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2)
+{
+    deque<uint8_t> dpTri = {};
+    dpTri.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(y0 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((x1 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(x1 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((y1 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(y1 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((x2 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(x2 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((y2 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(y2 & 0xFF));
+
+    cmdFrame.createFrm(frmCmdType::DRAW_TRIANGLE, dpTri);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Fill triangle
+void EpaperController::fillTriangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2)
+{
+    deque<uint8_t> dpTri = {};
+    dpTri.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(y0 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((x1 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(x1 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((y1 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(y1 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((x2 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(x2 & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>((y2 >> 8) & 0xFF));
+    dpTri.push_back(static_cast<uint8_t>(y2 & 0xFF));
+
+    cmdFrame.createFrm(frmCmdType::FILL_TRIANGLE, dpTri);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Load font from TF to NAND
+void EpaperController::loadFont(void)
+{
+    cmdFrame.createFrm(frmCmdType::LOAD_FONT);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Set Chinese font: 1:32dot 2:48dot 3:64dot
+void EpaperController::setChFont(frmCmdChFont font)
+{
+    deque<uint8_t> dqFont = {};
+
+    dqFont.push_back(static_cast<uint8_t>(font));
+    cmdFrame.createFrm(frmCmdType::SET_CH_FONT, dqFont);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Set English font: 1:32dot 2:48dot 3:64dot
+void EpaperController::setEnFont(frmCmdEnFont font)
+{
+    deque<uint8_t> dqFont = {};
+
+    dqFont.push_back(static_cast<uint8_t>(font));
+    cmdFrame.createFrm(frmCmdType::SET_EN_FONT, dqFont);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Display text
+void EpaperController::drawStr(const string &str, int16_t x0, int16_t y0)
+{
+    deque<uint8_t> dpStr = {};
+    dpStr.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dpStr.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dpStr.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dpStr.push_back(static_cast<uint8_t>(y0 & 0xFF));
+
+    for (char ch : str)
+    { dpStr.push_back(static_cast<uint8_t>(ch)); }
+
+    cmdFrame.createFrm(frmCmdType::DRAW_STRING, dpStr);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Load BMP from TF to NAND
+void EpaperController::loadPic(void)
+{
+    cmdFrame.createFrm(frmCmdType::LOAD_PIC);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Display BMP. Bitmap file name string maximum length is 11
+void EpaperController::drawBitmap(const string &fileNme, int16_t x0, int16_t y0)
+{
+    deque<uint8_t> dpFileName = {};
+    dpFileName.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dpFileName.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dpFileName.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dpFileName.push_back(static_cast<uint8_t>(y0 & 0xFF));
+
+    for (char ch : fileNme)
+    {
+        dpFileName.push_back(static_cast<uint8_t>(ch));
+    }
+
+    cmdFrame.createFrm(frmCmdType::DRAW_BITMAP, dpFileName);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}

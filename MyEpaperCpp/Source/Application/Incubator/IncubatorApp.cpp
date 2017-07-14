@@ -13,166 +13,158 @@ IncubatorApp::~IncubatorApp()
 {
 }
 
-#if 0
-
-static void _BaseDraw(void)
+static void drawBasic(EpaperController &epaper)
 {
     int i, j;
 
     /* draw pixel */
-    LibEpdClear();
+    epaper.fillScrBg();
     for (j = 0; j < 600; j += 50)
     {
         for (i = 0; i < 800; i += 50)
         {
-            LibEpdDrawPixel(i, j);
-            LibEpdDrawPixel(i, j + 1);
-            LibEpdDrawPixel(i + 1, j);
-            LibEpdDrawPixel(i + 1, j + 1);
+            epaper.drawPixel(i, j);
+            epaper.drawPixel(i, j + 1);
+            epaper.drawPixel(i + 1, j);
+            epaper.drawPixel(i + 1, j + 1);
         }
     }
-    LibEpdUpdate();
 
-    usleep(3000000);
+    epaper.scrUpdate();
+    Sleep(3000);
 
     /* draw line */
-    LibEpdClear();
+    epaper.fillScrBg();
     for (i = 0; i < 800; i += 100)
     {
-        LibEpdDrawLine(0, 0, i, 599);
-        LibEpdDrawLine(799, 0, i, 599);
+        epaper.drawLine(0, 0, i, 599);
+        epaper.drawLine(799, 0, i, 599);
     }
-    LibEpdUpdate();
-    usleep(3000000);
+
+    epaper.scrUpdate();
+    Sleep(3000);
 
     /* fill rect */
-    LibEpdClear();
-    LibEpdSetColor(BLACK, WHITE);
-    LibEpdFillRect(10, 10, 100, 100);
+    epaper.fillScrBg();
+    epaper.setColor(frmCmdColor::BLACK, frmCmdColor::WHITE);
+    epaper.fillRect(10, 10, 100, 100);
 
-    LibEpdSetColor(DARK_GRAY, WHITE);
-    LibEpdFillRect(110, 10, 200, 100);
+    epaper.setColor(frmCmdColor::DARK_GRAY, frmCmdColor::WHITE);
+    epaper.fillRect(110, 10, 200, 100);
 
-    LibEpdSetColor(GRAY, WHITE);
-    LibEpdFillRect(210, 10, 300, 100);
+    epaper.setColor(frmCmdColor::GRAY, frmCmdColor::WHITE);
+    epaper.fillRect(210, 10, 300, 100);
 
-    LibEpdUpdate();
-    usleep(3000000);
+    epaper.scrUpdate();
+    Sleep(3000);
 
     /* draw circle */
-    LibEpdSetColor(BLACK, WHITE);
-    LibEpdClear();
+    epaper.setColor(frmCmdColor::BLACK, frmCmdColor::WHITE);
+    epaper.fillScrBg();
     for (i = 0; i < 300; i += 40)
     {
-        LibEpdDrawCircle(399, 299, i);
+        epaper.drawCircle(399, 299, i);
     }
-    LibEpdUpdate();
-    usleep(3000000);
+    
+    epaper.scrUpdate();
+    Sleep(3000);
 
     /* fill circle */
-    LibEpdClear();
+    epaper.fillScrBg();
     for (j = 0; j < 6; j++)
     {
         for (i = 0; i < 8; i++)
         {
-            LibEpdFillCircle(50 + i * 100, 50 + j * 100, 50);
+            epaper.fillCircle(50 + i * 100, 50 + j * 100, 50);
         }
     }
-    LibEpdUpdate();
-    usleep(3000000);
+
+    epaper.scrUpdate();
+    Sleep(3000);
 
     /* draw triangle */
-    LibEpdClear();
+    epaper.fillScrBg();
     for (i = 1; i < 5; i++)
     {
-        LibEpdDrawTriangle(399, 249 - i * 50, 349 - i * 50, 349 + i * 50,
+        epaper.drawTriangle(399, 249 - i * 50, 349 - i * 50, 349 + i * 50,
             449 + i * 50, 349 + i * 50);
     }
-    LibEpdUpdate();
-    usleep(3000000);
+
+    epaper.scrUpdate();
+    Sleep(3000);
 }
-void DrawTextDemo(void)
+
+void drawText(EpaperController &epaper)
 {
-    LibEpdClear();
-    printf("Set colours...\n");
-    LibEpdSetColor(BLACK, WHITE);
-    printf("Display Chinese...\n");
-    LibEpdSetChFont(GBK32);
-    LibEpdDispString("中文：狐狸", 0, 50);
-    LibEpdSetChFont(GBK48);
-    LibEpdDispString("中文：熊妈", 0, 100);
-    LibEpdSetChFont(GBK64);
-    LibEpdDispString("中文：荟雅", 0, 160);
+    epaper.fillScrBg();
+    cout << "Set colours..." << endl;
+    epaper.setColor(frmCmdColor::BLACK, frmCmdColor::WHITE);
+    cout << "Display Chinese..." << endl;
+    epaper.setChFont(frmCmdChFont::GBK32);
+    epaper.drawStr("中文32：狐狸", 0, 50);
+    epaper.setChFont(frmCmdChFont::GBK48);
+    epaper.drawStr("中文48：熊妈", 0, 100);
+    epaper.setChFont(frmCmdChFont::GBK64);
+    epaper.drawStr("中文64：荟雅", 0, 160);
 
-    printf("Display English...\n");
-    LibEpdSetEnFont(ASCII32);
-    LibEpdDispString("ASCII32: Fox!", 0, 300);
-    LibEpdSetEnFont(ASCII48);
-    LibEpdDispString("ASCII48: Carrie!", 0, 350);
-    LibEpdSetEnFont(ASCII64);
-    LibEpdDispString("ASCII64: Aya!", 0, 450);
+    cout << "Display English..." << endl;
+    epaper.setEnFont(frmCmdEnFont::ASCII32);
+    epaper.drawStr("ASCII32: Fox!", 0, 300);
+    epaper.setEnFont(frmCmdEnFont::ASCII48);
+    epaper.drawStr("ASCII48: Carrie!", 0, 350);
+    epaper.setEnFont(frmCmdEnFont::ASCII64);
+    epaper.drawStr("ASCII64: Aya!", 0, 450);
 
-    usleep(3000000);
-    LibEpdUpdate();
+    Sleep(3000);
+    epaper.scrUpdate();
 }
 
-void DrawBitmapDemo(void)
+void drawBitmap(EpaperController &epaper)
 {
-    LibEpdClear();
-    LibEpdDispBitmap("PIC4.BMP", 0, 0);
-    LibEpdUpdate();
-    usleep(5000000);
+    epaper.fillScrBg();
 
-    LibEpdClear();
-    LibEpdDispBitmap("PIC2.BMP", 0, 100);
-    LibEpdDispBitmap("PIC3.BMP", 400, 100);
-    LibEpdUpdate();
-    usleep(5000000);
+    epaper.drawBitmap("PIC4.BMP", 0, 0);
+    epaper.scrUpdate();
+    Sleep(5000);
 
-    LibEpdClear();
-    LibEpdDispBitmap("FOXB.BMP", 0, 0);
-    LibEpdUpdate();
+    epaper.fillScrBg();
+    epaper.drawBitmap("PIC2.BMP", 0, 100);
+    epaper.drawBitmap("PIC3.BMP", 400, 100);
+    epaper.scrUpdate();
+    Sleep(5000);
+
+    epaper.fillScrBg();
+    epaper.drawBitmap("FOXB.BMP", 0, 0);
+    epaper.scrUpdate();
 }
-
-void EpaperText(char *str, int x, int y)
-{
-    LibEpdClear();
-    LibEpdSetColor(BLACK, WHITE);
-
-    LibEpdSetEnFont(ASCII32);
-    LibEpdDispString(str, x, y);
-
-    usleep(1000000);
-    LibEpdUpdate();
-}
-
-#endif
 
 void IncubatorApp::run(void)
 {
     epaper.wakeup();
-    printf("Handshaking...\n");
+    cout << "Handshaking..." << endl;
     epaper.handshake();
+
     Sleep(1000);
-#if 0
-    printf("Updating...\n");
-    LibEpdUpdate();
-    LibEpdSetMemory(MEM_TF);
 
-    /* base Draw demo */
-    _BaseDraw();
-    /* Draw text demo */
-    DrawTextDemo();
-    /* Draw bitmap */
-    DrawBitmapDemo();
+    cout << "Updating..." << endl;
+    epaper.scrUpdate();
+    cout << "Set Mode to TF..." << endl;
+    epaper.setMemMode(frmCmdMemMode::MEM_TF);
 
-    LibEpdClear();
+    // Basic draw API
+    cout << "drawBasic..." << endl;
+    drawBasic(epaper);
 
-    LibEpdClose();
+    // Text draw API
+    cout << "drawText..." << endl;
+    drawText(epaper);
 
-    EpaperText("Hello, BBB.", 0, 300);
-#endif
+    // Bitmap draw
+    cout << "bitmapText..." << endl;
+    drawBitmap(epaper);
 
+    cout << "Fill screen BG..." << endl;
+    epaper.fillScrBg();
 }
 
 bool IncubatorApp::init(void)

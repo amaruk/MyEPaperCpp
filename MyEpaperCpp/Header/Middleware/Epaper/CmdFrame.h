@@ -42,50 +42,48 @@ enum class frmCmdType : uint8_t
     // Image
     DRAW_BITMAP = 0x70,
     // Invalid
-    INVALID = 0xFF,
+    INVALID = 0xFF
 };
 
-#if 0
 
-/* Color define */
-#define    WHITE                    0x03
-#define    GRAY                     0x02
-#define    DARK_GRAY                0x01
-#define    BLACK                    0x00
+// Memory Mode
+enum class frmCmdMemMode : uint8_t
+{
+    NAND,
+    MEM_TF
+};
 
-/* Frame buff size */
-#define     FRAME_BUFF_SIZE         512	
-/* Frame start byte */
-#define     START                   0xA5
-/* Frame end sequence */
-#define     END_0                   0xCC
-#define     END_1                   0x33
-#define     END_2                   0xC3
-#define     END_3                   0x3C
+// Color
+enum class frmCmdColor : uint8_t
+{
+    BLACK,
+    DARK_GRAY,
+    GRAY,
+    WHITE
+};
 
+// Chinese font
+enum class frmCmdChFont : uint8_t
+{
+    GBK32 = 1,
+    GBK48,
+    GBK64
+};
 
-/*
-FONT
-*/
-#define    GBK32                              0x01
-#define    GBK48                              0x02
-#define    GBK64                              0x03
+// ASCII font
+enum class frmCmdEnFont : uint8_t
+{
+    ASCII32 = 1,
+    ASCII48,
+    ASCII64
+};
 
-#define    ASCII32                            0x01
-#define    ASCII48                            0x02
-#define    ASCII64                            0x03
-
-/* Memory Mode */
-#define    MEM_NAND                           0
-#define    MEM_TF                             1
-
-/*
-set screen rotation
-*/
-#define    EPD_NORMAL                         0              //screen normal
-#define    EPD_INVERSION                      1              //screen inversion
-
-#endif
+// set screen rotation
+enum class frmCmdRotation : uint8_t
+{
+    EPD_NORMAL,
+    EPD_INVERSION
+};
 
 class CmdFrame
 {
