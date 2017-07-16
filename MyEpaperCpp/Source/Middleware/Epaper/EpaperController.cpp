@@ -2,6 +2,7 @@
 #include <iostream>
 
 using std::string;
+using std::wstring;
 using std::vector;
 using std::deque;
 using std::cout;
@@ -297,8 +298,26 @@ void EpaperController::setEnFont(frmCmdEnFont font)
     serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-// Display text
-void EpaperController::drawStr(const string &str, int16_t x0, int16_t y0)
+string UTF8ToGBK(const std::string& strUTF8)
+{
+    int len = MultiByteToWideChar(CP_UTF8, 0, strUTF8.c_str(), -1, NULL, 0);
+    unsigned short * wszGBK = new unsigned short[len + 1];
+    memset(wszGBK, 0, len * 2 + 2);
+    MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)strUTF8.c_str(), -1, wszGBK, len);
+
+    len = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
+    char *szGBK = new char[len + 1];
+    memset(szGBK, 0, len + 1);
+    WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, szGBK, len, NULL, NULL);
+    //strUTF8 = szGBK;  
+    std::string strTemp(szGBK);
+    delete[]szGBK;
+    delete[]wszGBK;
+    return strTemp;
+}
+
+// Display Chinese text
+void EpaperController::drawChStr(const wstring &strUnicode, int16_t x0, int16_t y0)
 {
     deque<uint8_t> dpStr = {};
     dpStr.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
@@ -306,8 +325,35 @@ void EpaperController::drawStr(const string &str, int16_t x0, int16_t y0)
     dpStr.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
     dpStr.push_back(static_cast<uint8_t>(y0 & 0xFF));
 
-    for (char ch : str)
+    string strGbk = UTF8ToGBK(strUnicode);
+    cout << "=====================GBK: " << strGbk << endl;
+
+    for (wchar_t ch : strUnicode)
+    {
+        dpStr.push_back(static_cast<uint8_t>((ch >> 8) & 0xFF));
+        dpStr.push_back(static_cast<uint8_t>(ch & 0xFF));
+    }
+    // Add '\0'
+    dpStr.push_back(static_cast<uint8_t>('\0'));
+
+    cmdFrame.createFrm(frmCmdType::DRAW_STRING, dpStr);
+
+    serialPort.WriteData(cmdFrame.serializeFrm());
+}
+
+// Display English text
+void EpaperController::drawEnStr(const string &strAscii, int16_t x0, int16_t y0)
+{
+    deque<uint8_t> dpStr = {};
+    dpStr.push_back(static_cast<uint8_t>((x0 >> 8) & 0xFF));
+    dpStr.push_back(static_cast<uint8_t>(x0 & 0xFF));
+    dpStr.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
+    dpStr.push_back(static_cast<uint8_t>(y0 & 0xFF));
+
+    for (wchar_t ch : str)
     { dpStr.push_back(static_cast<uint8_t>(ch)); }
+    // Add '\0'
+    dpStr.push_back(static_cast<uint8_t>('\0'));
 
     cmdFrame.createFrm(frmCmdType::DRAW_STRING, dpStr);
 
@@ -332,9 +378,9 @@ void EpaperController::drawBitmap(const string &fileNme, int16_t x0, int16_t y0)
     dpFileName.push_back(static_cast<uint8_t>(y0 & 0xFF));
 
     for (char ch : fileNme)
-    {
-        dpFileName.push_back(static_cast<uint8_t>(ch));
-    }
+    { dpFileName.push_back(static_cast<uint8_t>(ch)); }
+    // Add '\0'
+    dpFileName.push_back(static_cast<uint8_t>('\0'));
 
     cmdFrame.createFrm(frmCmdType::DRAW_BITMAP, dpFileName);
 

@@ -32,7 +32,8 @@ public:
     void loadFont(void); // NOT TESTED
     void setChFont(frmCmdChFont font);
     void setEnFont(frmCmdEnFont font);
-    void drawStr(const std::string &str, int16_t x0, int16_t y0);
+    void drawChStr(const std::wstring &strUnicode, int16_t x0, int16_t y0);
+    void drawEnStr(const std::string &strAscii, int16_t x0, int16_t y0);
     void loadPic(void); // NOT TESTED
     void drawBitmap(const std::string &fileNme, int16_t x0, int16_t y0);
 

@@ -101,19 +101,19 @@ void drawText(EpaperController &epaper)
     epaper.setColor(frmCmdColor::BLACK, frmCmdColor::WHITE);
     cout << "Display Chinese..." << endl;
     epaper.setChFont(frmCmdChFont::GBK32);
-    epaper.drawStr("中文32：狐狸", 0, 50);
+    epaper.drawChStr(L"中文：狐狸", 0, 50);
     epaper.setChFont(frmCmdChFont::GBK48);
-    epaper.drawStr("中文48：熊妈", 0, 100);
+    epaper.drawChStr(L"中文：熊妈", 0, 100);
     epaper.setChFont(frmCmdChFont::GBK64);
-    epaper.drawStr("中文64：荟雅", 0, 160);
+    epaper.drawChStr(L"中文：荟雅", 0, 160);
 
     cout << "Display English..." << endl;
     epaper.setEnFont(frmCmdEnFont::ASCII32);
-    epaper.drawStr("ASCII32: Fox!", 0, 300);
+    epaper.drawEnStr("ASCII32: Fox!", 0, 300);
     epaper.setEnFont(frmCmdEnFont::ASCII48);
-    epaper.drawStr("ASCII48: Carrie!", 0, 350);
+    epaper.drawEnStr("ASCII48: Carrie!", 0, 350);
     epaper.setEnFont(frmCmdEnFont::ASCII64);
-    epaper.drawStr("ASCII64: Aya!", 0, 450);
+    epaper.drawEnStr("ASCII64: Aya!", 0, 450);
 
     Sleep(3000);
     epaper.scrUpdate();
