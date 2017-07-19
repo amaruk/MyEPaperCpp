@@ -1,5 +1,6 @@
 #include "Middleware/Epaper/EpaperController.h"
 #include <iostream>
+#include "Infrastructure/CharacterSets/CharacterSets.h"
 
 using std::string;
 using std::wstring;
@@ -298,24 +299,6 @@ void EpaperController::setEnFont(frmCmdEnFont font)
     serialPort.WriteData(cmdFrame.serializeFrm());
 }
 
-string UTF8ToGBK(const std::string& strUTF8)
-{
-    int len = MultiByteToWideChar(CP_UTF8, 0, strUTF8.c_str(), -1, NULL, 0);
-    unsigned short * wszGBK = new unsigned short[len + 1];
-    memset(wszGBK, 0, len * 2 + 2);
-    MultiByteToWideChar(CP_UTF8, 0, (LPCTSTR)strUTF8.c_str(), -1, wszGBK, len);
-
-    len = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
-    char *szGBK = new char[len + 1];
-    memset(szGBK, 0, len + 1);
-    WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, szGBK, len, NULL, NULL);
-    //strUTF8 = szGBK;  
-    std::string strTemp(szGBK);
-    delete[]szGBK;
-    delete[]wszGBK;
-    return strTemp;
-}
-
 // Display Chinese text
 void EpaperController::drawChStr(const wstring &strUnicode, int16_t x0, int16_t y0)
 {
@@ -325,13 +308,12 @@ void EpaperController::drawChStr(const wstring &strUnicode, int16_t x0, int16_t 
     dpStr.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
     dpStr.push_back(static_cast<uint8_t>(y0 & 0xFF));
 
-    string strGbk = UTF8ToGBK(strUnicode);
-    cout << "=====================GBK: " << strGbk << endl;
-
-    for (wchar_t ch : strUnicode)
+    for (wchar_t wch : strUnicode)
     {
-        dpStr.push_back(static_cast<uint8_t>((ch >> 8) & 0xFF));
-        dpStr.push_back(static_cast<uint8_t>(ch & 0xFF));
+        char gb2312[2] = { '\0', '\0' };
+        CharacterSets::UnicodeToGB2312(gb2312, wch);
+        dpStr.push_back(static_cast<uint8_t>(gb2312[0]));
+        dpStr.push_back(static_cast<uint8_t>(gb2312[1]));
     }
     // Add '\0'
     dpStr.push_back(static_cast<uint8_t>('\0'));
@@ -350,7 +332,7 @@ void EpaperController::drawEnStr(const string &strAscii, int16_t x0, int16_t y0)
     dpStr.push_back(static_cast<uint8_t>((y0 >> 8) & 0xFF));
     dpStr.push_back(static_cast<uint8_t>(y0 & 0xFF));
 
-    for (wchar_t ch : str)
+    for (wchar_t ch : strAscii)
     { dpStr.push_back(static_cast<uint8_t>(ch)); }
     // Add '\0'
     dpStr.push_back(static_cast<uint8_t>('\0'));

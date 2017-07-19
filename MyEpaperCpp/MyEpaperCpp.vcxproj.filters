@@ -61,6 +61,12 @@
     <Filter Include="Source Files\Infrastructure\OSAbstraction\Windows">
       <UniqueIdentifier>{522f0a0d-853d-4980-b239-8c18197674ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Infrastructure\CharacterSets">
+      <UniqueIdentifier>{b200a57c-2000-436c-9f14-5a815b8d59d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Infrastructure\CharacterSets">
+      <UniqueIdentifier>{060fff8a-1c92-48b4-a3de-17019a3a682c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -84,6 +90,9 @@
     <ClInclude Include="Header\Middleware\Epaper\CmdFrame.h">
       <Filter>Header Files\Middleware\Epaper</Filter>
     </ClInclude>
+    <ClInclude Include="Header\Infrastructure\CharacterSets\CharacterSets.h">
+      <Filter>Header Files\Infrastructure\CharacterSets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -106,6 +115,9 @@
     </ClCompile>
     <ClCompile Include="Source\Middleware\Epaper\CmdFrame.cpp">
       <Filter>Source Files\Middleware\Epaper</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Infrastructure\CharacterSets\CharacterSets.cpp">
+      <Filter>Source Files\Infrastructure\CharacterSets</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
