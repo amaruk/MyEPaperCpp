@@ -1,6 +1,14 @@
 #include "Middleware/Epaper/CmdFrame.h"
 
 
+CmdFrame & CmdFrame::operator=(const CmdFrame & frm)
+{
+    frmLen = frm.frmLen;
+    frmCmd = frm.frmCmd;
+    frmData = frm.frmData;
+    return *this;
+}
+
 void CmdFrame::createFrm(const frmCmdType &cmd, const std::deque<uint8_t> &data)
 {
     frmCmd = cmd;

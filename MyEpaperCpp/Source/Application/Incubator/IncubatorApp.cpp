@@ -1,4 +1,5 @@
-﻿#include "Application/Incubator/IncubatorApp.h"
+﻿#include "stdafx.h"
+#include "Application/Incubator/IncubatorApp.h"
 #include <iostream>
 
 using std::cout;
@@ -6,6 +7,11 @@ using std::endl;
 
 IncubatorApp::IncubatorApp()
 {
+#ifdef DEBUG_CALL_SEQUENCE
+    cout << "CALL: IncubatorApp()" << endl;
+#endif
+    serialPort = CSerialPort();
+    epaper = EpaperController(serialPort);
 }
 
 
@@ -169,7 +175,7 @@ void IncubatorApp::run(void)
 
 bool IncubatorApp::init(void)
 {
-    if (!serialPort.InitPort(7))
+    if (!serialPort.InitPort(6))
     {
         std::cout << "initPort fail !" << std::endl;
         return false;

@@ -22,9 +22,8 @@
 #include <process.h>
 #include <iostream>
 
-#define DEBUG
 
-#ifdef DEBUG
+#if defined(DEBUG_SERIAL_LOCAL) || defined(DEBUG_CALL_SEQUENCE)
 #include <iomanip>
 using std::cout;
 using std::endl;
@@ -46,6 +45,9 @@ using std::deque;
 CSerialPort::CSerialPort(void)
     : m_hComm(INVALID_HANDLE_VALUE)//, m_hListenThread(INVALID_HANDLE_VALUE)
 {
+#ifdef DEBUG_CALL_SEQUENCE
+    cout << "CALL: CSerialPort(void)" << endl;
+#endif
     InitializeCriticalSection(&m_csCommunicationSync);
 }
 
@@ -59,7 +61,9 @@ CSerialPort::~CSerialPort(void)
 bool CSerialPort::InitPort(UINT portNo /*= 1*/, UINT baud /*= CBR_115200*/, char parity /*= 'N'*/,
     UINT databits /*= 8*/, UINT stopsbits /*= 1*/, DWORD dwCommEvents /*= EV_RXCHAR*/)
 {
-
+#ifdef DEBUG_CALL_SEQUENCE
+    cout << "CALL: CSerialPort::InitPort(*6)" << endl;
+#endif
     /** 临时变量,将制定参数转化为字符串形式,以构造DCB结构 */
     char szDCBparam[50];
     sprintf_s(szDCBparam, "baud=%d parity=%c data=%d stop=%d", baud, parity, databits, stopsbits);
@@ -105,7 +109,7 @@ bool CSerialPort::InitPort(UINT portNo /*= 1*/, UINT baud /*= CBR_115200*/, char
 
         /** 获取当前串口配置参数,并且构造串口DCB参数 */
         bIsSuccess = GetCommState(m_hComm, &dcb) && BuildCommDCB(pwText, &dcb);
-        /** 开启RTS flow控制 */
+        /** 打开RTS flow控制 */
         dcb.fRtsControl = RTS_CONTROL_ENABLE;
 
         /** 释放内存空间 */
@@ -129,6 +133,9 @@ bool CSerialPort::InitPort(UINT portNo /*= 1*/, UINT baud /*= CBR_115200*/, char
 
 bool CSerialPort::InitPort(UINT portNo, const LPDCB& plDCB)
 {
+#ifdef DEBUG_CALL_SEQUENCE
+    cout << "CALL: CSerialPort::InitPort(*2)" << endl;
+#endif
     /** 打开指定串口,该函数内部已经有临界区保护,上面请不要加保护 */
     if (!openPort(portNo))
     {
@@ -316,7 +323,7 @@ bool CSerialPort::WriteData(deque<uint8_t> sendData)
     for (int idx = 0; idx != dataSize; idx++)
     { aryData[idx] = sendData[idx]; }
 
-#ifdef DEBUG
+#ifdef DEBUG_SERIAL_LOCAL
     cout << "UART: " << hex << uppercase;
     for (uint8_t byteData : sendData)
     { cout << setfill('0') << setw(2) << static_cast<int>(byteData) << " "; }

@@ -89,6 +89,7 @@ class CmdFrame
 {
 public:
     CmdFrame() = default;
+    CmdFrame & operator=(const CmdFrame &frm);
     ~CmdFrame() = default;
 
     // Frame length without data.

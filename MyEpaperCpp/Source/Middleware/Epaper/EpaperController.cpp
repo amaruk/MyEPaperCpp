@@ -18,8 +18,17 @@ const int PIN_HIGH = 1;
 // TODO The usleep() shall be implemented in OS abstraction layer
 void usleep(int us) {};
 
+EpaperController::EpaperController(void)
+{
+}
+
 EpaperController::EpaperController(const CSerialPort &serialInit) : serialPort(serialInit)
 {
+#ifdef DEBUG_CALL_SEQUENCE
+    cout << "CALL: EpaperController()" << endl;
+#endif
+    serialPort = serialInit;
+    cmdFrame = CmdFrame();
     serialPort.ClearPort(); // Discard existing data.
     s_pin_wakeup = PIN_LOW;
     s_pin_reset = PIN_LOW;
@@ -27,6 +36,19 @@ EpaperController::EpaperController(const CSerialPort &serialInit) : serialPort(s
 
 EpaperController::~EpaperController()
 {
+}
+
+EpaperController & EpaperController::operator=(const EpaperController & epaper)
+{
+#ifdef DEBUG_CALL_SEQUENCE
+    cout << "CALL: EpaperController::operator=()" << endl;
+#endif
+    serialPort = epaper.serialPort;
+    cmdFrame = CmdFrame();
+    serialPort.ClearPort(); // Discard existing data.
+    s_pin_wakeup = PIN_LOW;
+    s_pin_reset = PIN_LOW;
+    return *this;
 }
 
 void EpaperController::reset(void)
@@ -62,7 +84,13 @@ void EpaperController::handshake(void)
     deque<uint8_t> rcvData = {};
     cmdFrame.createFrm(frmCmdType::HANDSHAKE);
 
-    serialPort.transaction(cmdFrame.serializeFrm(), rcvData);
+    if (!serialPort.transaction(cmdFrame.serializeFrm(), rcvData))
+    { cout << "Handshake failed." << endl; }
+
+    cout << "RX: ";
+    for (uint8_t ch : rcvData)
+    { cout << ch; }
+    cout << endl;
     // Returns "OK" if epaper is ready
     // TODO: Check handshake result
 }
