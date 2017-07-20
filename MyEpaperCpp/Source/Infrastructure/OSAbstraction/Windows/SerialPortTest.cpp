@@ -14,60 +14,7 @@ int not_main(int argc, char* argv[])
 {
 
 
-    CSerialPort mySerialPort = CSerialPort();
-    if (!mySerialPort.InitPort(6))
-    {
-        std::cout << "initPort fail !" << std::endl;
-        return false;
-    }
-    else
-    {
-        std::cout << "initPort success !" << std::endl;
-    }
-    EpaperController epaper = EpaperController(mySerialPort);
-    epaper.wakeup();
-    epaper.handshake();
-
-#if 1
-    CmdFrame cmdFrame;
-    deque<uint8_t> rcvData = {};
-    cmdFrame.createFrm(frmCmdType::HANDSHAKE);
-
-    if (!mySerialPort.transaction(cmdFrame.serializeFrm(), rcvData))
-    {
-        cout << "Handshake failed." << endl;
-    }
-
-    cout << "RX: ";
-    for (uint8_t ch : rcvData)
-    {
-        cout << ch;
-    }
-    cout << endl;
-#endif
-
-    cout << "***** Test transaction *****" << endl;
-    deque<uint8_t> dataOutDeque = { 0xA5, 0x00, 0x09, 0x00, 0xCC, 0x33, 0xC3, 0x3C, 0xAC }; // ASCII: Serial
-    deque<uint8_t> dataInDeque = { 0x21, 0x21, 0x21 }; // ASCII: !!!
-
-    mySerialPort.transaction(dataOutDeque, dataInDeque);
-
-    for (char c : dataInDeque)
-    {
-        cout << c;
-    }
-    cout << endl;
-
-#if 0
-    CSerialPort mySerialPort = CSerialPort();
-
-    if (!mySerialPort.InitPort(6))
-    {
-        std::cout << "/!\\ Fatal Error: initPort fail!" << std::endl;
-        return -1;
-    }
-    else
-    { ; }
+    CSerialPort mySerialPort = CSerialPort(6);
 
 #if 0
     if (!mySerialPort.OpenListenThread())
@@ -81,17 +28,10 @@ int not_main(int argc, char* argv[])
 #endif
 
     cout << "***** Test transaction *****" << endl;
-    deque<uint8_t> dataOutDeque = { 0xA5, 0x00, 0x09, 0x00, 0xCC, 0x33, 0xC3, 0x3C, 0xAC }; // ASCII: Serial
+    deque<uint8_t> dataOutDeque = { 0xA5, 0x00, 0x09, 0x00, 0xCC, 0x33, 0xC3, 0x3C, 0xAC }; // ASCII: Handshake
     deque<uint8_t> dataInDeque = { 0x21, 0x21, 0x21 }; // ASCII: !!!
 
     mySerialPort.transaction(dataOutDeque, dataInDeque);
-
-    //mySerialPort.WriteData(dataOutDeque);
-
-    //unsigned char dataOutAry[10] = { 'H', 'e', 'l', 'l', 'o', '!' };
-    //mySerialPort.WriteData(dataOutAry, 6);
-
-    //Sleep(100);
 
 #if 0
     UINT bytesCnt = 0;
@@ -111,11 +51,11 @@ int not_main(int argc, char* argv[])
 
     //mySerialPort.ReadChar(dataInDeque);
 
+    // Should be "OK"
     for (char c : dataInDeque)
     { cout << c; }
 
     cout << endl;
-#endif
 
     return 0;
 }

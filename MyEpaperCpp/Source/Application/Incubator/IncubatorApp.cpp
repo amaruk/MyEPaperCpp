@@ -5,18 +5,13 @@
 using std::cout;
 using std::endl;
 
-IncubatorApp::IncubatorApp()
+IncubatorApp::IncubatorApp(uint32_t serialPort) : 
+    epaper(serialPort)
 {
+    return;
 #ifdef DEBUG_CALL_SEQUENCE
-    cout << "CALL: IncubatorApp()" << endl;
+    cout << "CALL: IncubatorApp(...)" << endl;
 #endif
-    serialPort = CSerialPort();
-    epaper = EpaperController(serialPort);
-}
-
-
-IncubatorApp::~IncubatorApp()
-{
 }
 
 static void drawBasic(EpaperController &epaper)
@@ -171,21 +166,6 @@ void IncubatorApp::run(void)
 
     cout << "Fill screen BG..." << endl;
     epaper.fillScrBg();
-}
-
-bool IncubatorApp::init(void)
-{
-    if (!serialPort.InitPort(6))
-    {
-        std::cout << "initPort fail !" << std::endl;
-        return false;
-    }
-    else
-    {
-        std::cout << "initPort success !" << std::endl;
-    }
-
-    return true;
 }
 
 

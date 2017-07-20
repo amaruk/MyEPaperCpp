@@ -6,14 +6,13 @@
 class IncubatorApp
 {
 public:
-    IncubatorApp(void);
-    ~IncubatorApp(void);
+    IncubatorApp(void) = delete;
+    IncubatorApp(uint32_t serialPort);
+    ~IncubatorApp(void) = default;
 
     void run(void);
-    bool init(void);
 
 private:
-    CSerialPort serialPort;
     EpaperController epaper;
 };
 

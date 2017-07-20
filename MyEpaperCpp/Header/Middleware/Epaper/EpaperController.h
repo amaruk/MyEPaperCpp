@@ -7,11 +7,11 @@
 class EpaperController
 {
 public:
-    EpaperController(void);
-    EpaperController(const CSerialPort &serialInit);
-    ~EpaperController();
+    EpaperController(void) = delete;
+    EpaperController(const uint32_t port);
+    ~EpaperController() = default;
 
-    EpaperController & operator=(const EpaperController &epaper);
+    //EpaperController & operator=(const EpaperController &epaper);
 
     void reset(void);
     void wakeup(void);

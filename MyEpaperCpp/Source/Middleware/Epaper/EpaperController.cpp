@@ -1,3 +1,4 @@
+#include "StdAfx.h"
 #include "Middleware/Epaper/EpaperController.h"
 #include <iostream>
 #include "Infrastructure/CharacterSets/CharacterSets.h"
@@ -18,26 +19,18 @@ const int PIN_HIGH = 1;
 // TODO The usleep() shall be implemented in OS abstraction layer
 void usleep(int us) {};
 
-EpaperController::EpaperController(void)
-{
-}
-
-EpaperController::EpaperController(const CSerialPort &serialInit) : serialPort(serialInit)
+EpaperController::EpaperController(const uint32_t port) :
+    serialPort(port), cmdFrame()
 {
 #ifdef DEBUG_CALL_SEQUENCE
     cout << "CALL: EpaperController()" << endl;
 #endif
-    serialPort = serialInit;
-    cmdFrame = CmdFrame();
     serialPort.ClearPort(); // Discard existing data.
     s_pin_wakeup = PIN_LOW;
     s_pin_reset = PIN_LOW;
 }
 
-EpaperController::~EpaperController()
-{
-}
-
+#if 0
 EpaperController & EpaperController::operator=(const EpaperController & epaper)
 {
 #ifdef DEBUG_CALL_SEQUENCE
@@ -50,6 +43,7 @@ EpaperController & EpaperController::operator=(const EpaperController & epaper)
     s_pin_reset = PIN_LOW;
     return *this;
 }
+#endif
 
 void EpaperController::reset(void)
 {

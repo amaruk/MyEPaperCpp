@@ -30,7 +30,8 @@
 class CSerialPort // TODO Inherit from an OSAbstraction base class
 {
 public:
-    CSerialPort(void);
+    CSerialPort(void) = delete;
+    CSerialPort(const uint32_t port);
     ~CSerialPort(void);
 
 public:

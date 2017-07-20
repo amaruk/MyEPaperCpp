@@ -42,13 +42,18 @@ using std::deque;
 /** 当串口无数据时,sleep至下次查询间隔的时间,单位:秒 */
 //const UINT SLEEP_TIME_INTERVAL = 5;
 
-CSerialPort::CSerialPort(void)
+CSerialPort::CSerialPort(const uint32_t port)
     : m_hComm(INVALID_HANDLE_VALUE)//, m_hListenThread(INVALID_HANDLE_VALUE)
 {
 #ifdef DEBUG_CALL_SEQUENCE
     cout << "CALL: CSerialPort(void)" << endl;
 #endif
     InitializeCriticalSection(&m_csCommunicationSync);
+
+    if (!InitPort(port))
+    { std::cout << "initPort fail !" << std::endl; }
+    else
+    { std::cout << "initPort success !" << std::endl; }
 }
 
 CSerialPort::~CSerialPort(void)

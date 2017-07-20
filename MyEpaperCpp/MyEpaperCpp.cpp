@@ -24,8 +24,7 @@ int main()
 {
     cout << "Hello, C++ Epaper!" << endl;
 
-    IncubatorApp app = IncubatorApp();
-    app.init();
+    IncubatorApp app = IncubatorApp(6);
     app.run();
 
     return 0;
