@@ -135,8 +135,18 @@ void drawBitmap(EpaperController &epaper)
     Sleep(5000);
 
     epaper.fillScrBg();
-    epaper.drawBitmap("FOXB.BMP", 0, 0);
+    epaper.drawBitmap("BLACK.BMP", 0, 0);
     epaper.scrUpdate();
+    Sleep(5000);
+
+    epaper.fillScrBg();
+    epaper.drawBitmap("WHITE.BMP", 0, 0);
+    epaper.scrUpdate();
+
+    epaper.fillScrBg();
+    epaper.drawBitmap("GIMP.BMP", 0, 0);
+    epaper.scrUpdate();
+    Sleep(5000);
 }
 
 void IncubatorApp::run(void)
@@ -147,6 +157,7 @@ void IncubatorApp::run(void)
 
     Sleep(1000);
 
+#if 0
     cout << "Updating..." << endl;
     epaper.scrUpdate();
     cout << "Set Mode to TF..." << endl;
@@ -163,9 +174,33 @@ void IncubatorApp::run(void)
     // Bitmap draw
     cout << "bitmapText..." << endl;
     drawBitmap(epaper);
+#endif
 
-    cout << "Fill screen BG..." << endl;
+#if 1
+    cout << "Find out display area." << endl;
+
+    /* draw line */
+    {
+      epaper.setColor(frmCmdColor::BLACK, frmCmdColor::WHITE);
+      epaper.fillScrBg();
+      // (0,0)      (799,0)
+      // (0,599)    (799,599)
+      epaper.drawLine(0, 0, 799, 0);
+      epaper.drawLine(0, 0, 0, 599);
+      epaper.drawLine(799, 0, 799, 599);
+      epaper.drawLine(0, 599, 799, 599);
+    }
+
+    epaper.scrUpdate();
+    Sleep(3000);
+#else
+    epaper.setColor(frmCmdColor::BLACK, frmCmdColor::WHITE);
     epaper.fillScrBg();
+    epaper.drawBitmap("GIMP.BMP", 0, 0);
+    epaper.scrUpdate();
+    Sleep(5000);
+#endif
+
 }
 
 
