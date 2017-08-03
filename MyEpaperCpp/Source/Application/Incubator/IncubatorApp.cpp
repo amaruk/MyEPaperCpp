@@ -149,20 +149,27 @@ void drawBitmap(EpaperController &epaper)
     Sleep(5000);
 }
 
+void IncubatorApp::init(void)
+{
+	// Handshake with Epaper and do basic settings
+	epaper.wakeup();
+	cout << "Handshaking..." << endl;
+	epaper.handshake();
+
+	Sleep(1000);
+
+	cout << "Cleaning..." << endl;
+	epaper.scrUpdate();
+	cout << "Set Mode to TF..." << endl;
+	epaper.setMemMode(frmCmdMemMode::MEM_TF);
+
+	// TODO: Show Startup Logo screen here.
+}
+
 void IncubatorApp::run(void)
 {
-    epaper.wakeup();
-    cout << "Handshaking..." << endl;
-    epaper.handshake();
-
-    Sleep(1000);
 
 #if 0
-    cout << "Updating..." << endl;
-    epaper.scrUpdate();
-    cout << "Set Mode to TF..." << endl;
-    epaper.setMemMode(frmCmdMemMode::MEM_TF);
-
     // Basic draw API
     cout << "drawBasic..." << endl;
     drawBasic(epaper);

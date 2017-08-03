@@ -50,6 +50,7 @@ CSerialPort::CSerialPort(const uint32_t port)
 #endif
     InitializeCriticalSection(&m_csCommunicationSync);
 
+	// TODO: Throw exception to indicate failure
     if (!InitPort(port))
     { std::cout << "initPort fail !" << std::endl; }
     else

@@ -22,9 +22,8 @@ using std::endl;
 
 int main()
 {
-    cout << "Hello, C++ Epaper!" << endl;
-
     IncubatorApp app = IncubatorApp(6);
+	app.init();
     app.run();
 
     return 0;
