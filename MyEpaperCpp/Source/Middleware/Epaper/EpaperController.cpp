@@ -82,14 +82,17 @@ void EpaperController::handshake(void)
     { cout << "Handshake TX or RX fail." << endl; }
 
     cout << "RX with len(" << rcvData.size() << ") ";
-    for (uint8_t ch : rcvData)
-    { cout << ch; }
-    cout << endl;
+    if (rcvData.size() > 0)
+    {
+      for (uint8_t ch : rcvData)
+      { cout << ch; }
+      cout << endl;
 
-    if ((rcvData[0] != 'O') || (rcvData[1] != 'K'))
-    { cout << "Handshake reply failed" << endl; }
-    // Returns "OK" if epaper is ready
-    // TODO: Check handshake result
+      if ((rcvData[0] != 'O') || (rcvData[1] != 'K'))
+      { cout << "Handshake reply failed" << endl; }
+      // Returns "OK" if epaper is ready
+      // TODO: Check handshake result
+    }
 }
 
 // Set baudrate

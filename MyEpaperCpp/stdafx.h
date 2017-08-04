@@ -10,8 +10,10 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#undef DEBUG_SERIAL_LOCAL
+#define DEBUG_SERIAL_LOCAL
+#ifdef DEBUG_SERIAL_LOCAL
 #define DEBUG_CALL_SEQUENCE
+#endif
 
 
 // TODO: reference additional headers your program requires here
