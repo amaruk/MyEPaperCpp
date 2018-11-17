@@ -22,8 +22,8 @@ using std::endl;
 
 int main()
 {
-    IncubatorApp app = IncubatorApp(6);
-	app.init();
+    IncubatorApp app = IncubatorApp(11);
+    app.init();
     app.run();
 
     return 0;

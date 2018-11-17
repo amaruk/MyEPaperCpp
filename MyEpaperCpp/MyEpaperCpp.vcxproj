@@ -143,9 +143,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Header\Application\Incubator\IncubatorApp.h" />
     <ClInclude Include="Header\Infrastructure\CharacterSets\CharacterSets.h" />
     <ClInclude Include="Header\Infrastructure\OSAbstraction\Windows\SerialPort.h" />

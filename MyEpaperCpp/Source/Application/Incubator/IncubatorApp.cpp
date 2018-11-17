@@ -179,11 +179,11 @@ void IncubatorApp::run(void)
     drawText(epaper);
 
     // Bitmap draw
-    cout << "bitmapText..." << endl;
+    cout << "drawBitmap..." << endl;
     drawBitmap(epaper);
 #endif
 
-#if 1
+#if 0
     cout << "Find out display area." << endl;
 
     /* draw line */
@@ -204,6 +204,13 @@ void IncubatorApp::run(void)
     epaper.setColor(frmCmdColor::BLACK, frmCmdColor::WHITE);
     epaper.fillScrBg();
     epaper.drawBitmap("GIMP.BMP", 0, 0);
+
+
+    epaper.drawLine(0, 0, 799, 0);
+    epaper.drawLine(0, 0, 0, 599);
+    epaper.drawLine(799, 0, 799, 599);
+    epaper.drawLine(0, 599, 799, 599);
+
     epaper.scrUpdate();
     Sleep(5000);
 #endif

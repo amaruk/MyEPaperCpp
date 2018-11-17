@@ -52,9 +52,9 @@ CSerialPort::CSerialPort(const uint32_t port)
 
 	// TODO: Throw exception to indicate failure
     if (!InitPort(port))
-    { std::cout << "initPort fail !" << std::endl; }
+    { std::cout << "initPort[" << port << "] fail!" << std::endl; }
     else
-    { std::cout << "initPort success !" << std::endl; }
+    { std::cout << "initPort[" << port << "] success !" << std::endl; }
 }
 
 CSerialPort::~CSerialPort(void)
@@ -183,7 +183,7 @@ bool CSerialPort::openPort(UINT portNo)
 
     /** 把串口的编号转换为设备名 */
     char szPort[50];
-    sprintf_s(szPort, "COM%d", portNo);
+    sprintf_s(szPort, "\\\\.\\COM%d", portNo);
 
     /** 打开指定的串口 */
     m_hComm = CreateFileA(szPort,  /** 设备名,COM1,COM2等 */
@@ -191,13 +191,33 @@ bool CSerialPort::openPort(UINT portNo)
         0,                            /** 共享模式,0表示不共享 */
         NULL,                         /** 安全性设置,一般使用NULL */
         OPEN_EXISTING,                /** 该参数表示设备必须存在,否则创建失败 */
-        0,
+        FILE_ATTRIBUTE_NORMAL,
         0);
 
     /** 如果打开失败，释放资源并返回 */
     if (m_hComm == INVALID_HANDLE_VALUE)
     {
         LeaveCriticalSection(&m_csCommunicationSync);
+        ///查找错误
+        DWORD erM = 0;
+        LPVOID lpMsgBuf;
+
+        erM = GetLastError();
+        FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+          NULL,
+          erM,
+          MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+          (LPTSTR)&lpMsgBuf,
+          0, NULL);
+
+        char* errMsg = (char*)lpMsgBuf;
+        std::cout << "ErrorMessage: ";
+        for (int i = 0; i < 128; i++)
+        {
+          std::cout << *(errMsg + i);
+        }
+        std::cout << std::endl;
+
         return false;
     }
 

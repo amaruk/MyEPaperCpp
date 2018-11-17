@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#define DEBUG_SERIAL_LOCAL
+//#define DEBUG_SERIAL_LOCAL
 #ifdef DEBUG_SERIAL_LOCAL
 #define DEBUG_CALL_SEQUENCE
 #endif
